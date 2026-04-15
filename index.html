@@ -65,12 +65,12 @@ const App = () => {
       {/* Navegación Principal */}
       <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white shadow-xl py-2 text-[#2d241e]' : 'bg-transparent py-5 text-white'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
             <ShoppingBag className={scrolled ? 'text-amber-700' : 'text-amber-400'} size={28} />
-            <span className="text-2xl font-black tracking-widest uppercase italic">La Dehesa</span>
+            <span className="text-xl md:text-2xl font-black tracking-widest uppercase italic">La Dehesa</span>
           </div>
           
-          <div className="hidden md:flex gap-10 font-sans text-xs font-bold uppercase tracking-[0.2em]">
+          <div className="hidden md:flex gap-10 font-sans text-[10px] font-bold uppercase tracking-[0.2em]">
             <a href="#" className="hover:text-amber-600 transition-colors">Inicio</a>
             <a href="#productos" className="hover:text-amber-600 transition-colors">Productos</a>
             <a href="#historia" className="hover:text-amber-600 transition-colors">Historia</a>
@@ -81,13 +81,13 @@ const App = () => {
             <button onClick={() => setIsCartOpen(true)} className="relative p-2 transition-transform hover:scale-110 active:scale-95">
               <ShoppingCart className={scrolled ? 'text-[#2d241e]' : 'text-white'} />
               {cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                <span className="absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-pulse font-sans">
                   {cart.length}
                 </span>
               )}
             </button>
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden">
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X size={24} className={scrolled ? 'text-black' : 'text-white'} /> : <Menu size={24} className={scrolled ? 'text-black' : 'text-white'} />}
             </button>
           </div>
         </div>
@@ -95,8 +95,8 @@ const App = () => {
 
       {/* Menú Móvil */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center gap-8 md:hidden text-[#2d241e]">
-          <button onClick={() => setIsMenuOpen(false)} className="absolute top-6 right-6"><X size={32} /></button>
+        <div className="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center gap-8 md:hidden text-[#2d241e] animate-in fade-in zoom-in duration-300">
+          <button onClick={() => setIsMenuOpen(false)} className="absolute top-6 right-6 p-2"><X size={32} /></button>
           <a href="#" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Inicio</a>
           <a href="#productos" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Productos</a>
           <a href="#historia" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Historia</a>
@@ -105,52 +105,65 @@ const App = () => {
       )}
 
       {/* Hero Section */}
-      <header className="relative h-screen flex items-center justify-center overflow-hidden bg-black">
-        <div className="absolute inset-0 opacity-70">
-          <img src="https://images.unsplash.com/photo-1599401083957-25916035f29d?auto=format&fit=crop&q=80&w=1920" alt="Bodega de jamones" className="w-full h-full object-cover scale-105" />
+      <header className="relative h-[90vh] md:h-screen flex items-center justify-center overflow-hidden bg-black">
+        <div className="absolute inset-0 opacity-60">
+          <img 
+            src="https://images.unsplash.com/photo-1599401083957-25916035f29d?auto=format&fit=crop&q=80&w=1920" 
+            alt="Bodega de jamones" 
+            className="w-full h-full object-cover scale-105 animate-pulse-slow" 
+          />
         </div>
         <div className="relative z-10 text-center px-6 max-w-5xl">
-          <div className="inline-block px-5 py-2 border border-amber-400 text-amber-400 font-sans text-xs uppercase tracking-[0.4em] mb-8 bg-black/30 backdrop-blur-sm italic">Desde 1924</div>
-          <h1 className="text-6xl md:text-9xl text-white font-bold mb-8 leading-none">Excelencia <span className="italic text-amber-400 block md:inline font-light">Ibérico</span></h1>
-          <p className="text-lg md:text-2xl text-slate-200 mb-12 font-sans max-w-2xl mx-auto leading-relaxed">Piezas maestras seleccionadas una a una en las dehesas de la Sierra de Huelva.</p>
-          <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <a href="#productos" className="bg-amber-600 text-white px-12 py-5 rounded-full font-sans font-bold hover:bg-amber-700 transition-all shadow-xl">Explorar Colección</a>
-            <a href="#historia" className="border border-white/50 text-white px-12 py-5 rounded-full font-sans font-bold hover:bg-white hover:text-black transition-all">Nuestra Historia</a>
+          <div className="inline-block px-5 py-2 border border-amber-400 text-amber-400 font-sans text-[10px] md:text-xs uppercase tracking-[0.4em] mb-8 bg-black/30 backdrop-blur-sm italic">Desde 1924</div>
+          <h1 className="text-5xl md:text-8xl lg:text-9xl text-white font-bold mb-8 leading-none">
+            Excelencia <span className="italic text-amber-400 block md:inline font-light">Ibérico</span>
+          </h1>
+          <p className="text-base md:text-2xl text-slate-200 mb-12 font-sans max-w-2xl mx-auto leading-relaxed">
+            Piezas maestras seleccionadas una a una en las dehesas de la Sierra de Huelva.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
+            <a href="#productos" className="w-full sm:w-auto bg-amber-600 text-white px-10 py-4 md:px-12 md:py-5 rounded-full font-sans font-bold hover:bg-amber-700 transition-all shadow-xl text-center">Explorar Colección</a>
+            <a href="#historia" className="w-full sm:w-auto border border-white/50 text-white px-10 py-4 md:px-12 md:py-5 rounded-full font-sans font-bold hover:bg-white hover:text-black transition-all text-center">Nuestra Historia</a>
           </div>
         </div>
       </header>
 
-      {/* NUEVA SECCIÓN: HISTORIA */}
-      <section id="historia" className="py-24 bg-white overflow-hidden">
+      {/* SECCIÓN: HISTORIA */}
+      <section id="historia" className="py-20 md:py-32 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-            <div className="relative">
-              <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl transform -rotate-3 hover:rotate-0 transition-transform duration-700">
-                <img src="https://images.unsplash.com/photo-1533630660534-d67b5791220a?auto=format&fit=crop&q=80&w=800" alt="Maestro cortador" className="w-full h-[600px] object-cover" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            <div className="relative order-2 lg:order-1">
+              <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl transform lg:-rotate-3 hover:rotate-0 transition-transform duration-700">
+                <img src="https://images.unsplash.com/photo-1533630660534-d67b5791220a?auto=format&fit=crop&q=80&w=800" alt="Maestro cortador" className="w-full h-[400px] md:h-[600px] object-cover" />
               </div>
-              <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-amber-100 rounded-full -z-0 opacity-50 blur-3xl"></div>
-              <div className="absolute top-1/2 -left-10 w-20 h-20 border-4 border-amber-600 rounded-full hidden md:block"></div>
+              <div className="absolute -bottom-10 -right-10 w-48 md:w-64 h-48 md:h-64 bg-amber-100 rounded-full -z-0 opacity-50 blur-3xl"></div>
             </div>
             
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 text-amber-700 font-sans font-bold uppercase tracking-widest text-xs">
+            <div className="space-y-8 order-1 lg:order-2">
+              <div className="inline-flex items-center gap-2 text-amber-700 font-sans font-bold uppercase tracking-widest text-[10px] md:text-xs">
                 <div className="w-8 h-px bg-amber-700"></div> El Legado de la Tierra
               </div>
-              <h2 className="text-5xl md:text-6xl font-bold leading-tight">Un siglo de <span className="italic font-light">paciencia</span> y dedicación</h2>
-              <p className="text-slate-600 font-sans text-lg leading-relaxed">
+              <h2 className="text-4xl md:text-6xl font-bold leading-tight">Un siglo de <span className="italic font-light">paciencia</span> y dedicación</h2>
+              <p className="text-slate-600 font-sans text-base md:text-lg leading-relaxed">
                 Nuestra historia comienza en las dehesas de Jabugo, donde mi abuelo seleccionaba las mejores piaras de cerdos 100% ibéricos. Lo que empezó como una pequeña bodega familiar se ha convertido en un referente mundial de la gastronomía.
               </p>
-              <div className="grid grid-cols-2 gap-8 py-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-2 text-amber-700"><Calendar size={20}/> <span className="font-bold">1924</span></div>
-                  <p className="text-sm font-sans text-slate-500">Fundación de la primera bodega artesanal.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-4">
+                <div className="flex gap-4 items-start">
+                  <div className="bg-amber-50 p-3 rounded-lg text-amber-700"><Calendar size={20}/></div>
+                  <div>
+                    <span className="font-bold block text-amber-900">1924</span>
+                    <p className="text-sm font-sans text-slate-500">Fundación de la bodega artesanal.</p>
+                  </div>
                 </div>
-                <div>
-                  <div className="flex items-center gap-3 mb-2 text-amber-700"><Users size={20}/> <span className="font-bold">3ª Generación</span></div>
-                  <p className="text-sm font-sans text-slate-500">Mantenemos intactos los procesos de curación natural.</p>
+                <div className="flex gap-4 items-start">
+                  <div className="bg-amber-50 p-3 rounded-lg text-amber-700"><Users size={20}/></div>
+                  <div>
+                    <span className="font-bold block text-amber-900">3ª Generación</span>
+                    <p className="text-sm font-sans text-slate-500">Curación natural inalterada.</p>
+                  </div>
                 </div>
               </div>
-              <p className="text-slate-600 font-sans text-lg leading-relaxed italic border-l-4 border-amber-600 pl-6">
+              <p className="text-slate-600 font-sans text-base md:text-lg leading-relaxed italic border-l-4 border-amber-600 pl-6 bg-slate-50 py-4 rounded-r-lg">
                 "El secreto no está en la prisa, sino en el tiempo que la carne pasa escuchando el silencio de la bodega."
               </p>
             </div>
@@ -159,52 +172,53 @@ const App = () => {
       </section>
 
       {/* Valores de Marca */}
-      <section className="py-24 bg-[#fcfaf7]">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center text-amber-700 mb-8 transform rotate-6 hover:rotate-0 transition-transform"><Award size={40} /></div>
-            <h3 className="text-2xl font-bold mb-4 uppercase tracking-wider">Origen Jabugo</h3>
-            <p className="text-slate-500 font-sans text-base leading-relaxed">Localización privilegiada con microclima único para la curación natural.</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center text-amber-700 mb-8"><ShieldCheck size={40} /></div>
-            <h3 className="text-2xl font-bold mb-4 uppercase tracking-wider">100% Bellota</h3>
-            <p className="text-slate-500 font-sans text-base leading-relaxed">Certificación de brida negra, garantizando la pureza máxima de la raza.</p>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center text-amber-700 mb-8 transform -rotate-6 hover:rotate-0 transition-transform"><MapPin size={40} /></div>
-            <h3 className="text-2xl font-bold mb-4 uppercase tracking-wider">Envío Seguro</h3>
-            <p className="text-slate-500 font-sans text-base leading-relaxed">Logística especializada con control de temperatura para preservar el aroma.</p>
-          </div>
+      <section className="py-20 md:py-24 bg-[#fcfaf7]">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16 text-center">
+          {[
+            { icon: <Award size={40} />, title: "Origen Jabugo", desc: "Localización privilegiada con microclima único para la curación natural.", rotate: "rotate-6" },
+            { icon: <ShieldCheck size={40} />, title: "100% Bellota", desc: "Certificación de brida negra, garantizando la pureza máxima de la raza.", rotate: "rotate-0" },
+            { icon: <MapPin size={40} />, title: "Envío Seguro", desc: "Logística especializada con control de temperatura para preservar el aroma.", rotate: "-rotate-6" }
+          ].map((val, idx) => (
+            <div key={idx} className="flex flex-col items-center group">
+              <div className={`w-20 h-20 bg-white shadow-md rounded-3xl flex items-center justify-center text-amber-700 mb-8 transform ${val.rotate} group-hover:rotate-0 transition-transform duration-500`}>
+                {val.icon}
+              </div>
+              <h3 className="text-xl md:text-2xl font-bold mb-4 uppercase tracking-wider">{val.title}</h3>
+              <p className="text-slate-500 font-sans text-sm md:text-base leading-relaxed px-4">{val.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Sección de Productos */}
-      <section id="productos" className="py-28 px-6 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
-          <div className="max-w-xl">
-            <h2 className="text-5xl font-bold mb-6">Selección de la Casa</h2>
-            <div className="w-20 h-1.5 bg-amber-600 mb-6"></div>
-            <p className="text-slate-500 font-sans">Cada pieza es monitorizada diariamente por nuestros maestros bodegueros hasta alcanzar el punto óptimo de consumo.</p>
-          </div>
+      <section id="productos" className="py-20 md:py-32 px-6 max-w-7xl mx-auto">
+        <div className="text-center md:text-left mb-16 md:mb-20">
+          <h2 className="text-4xl md:text-6xl font-bold mb-6">Selección de la Casa</h2>
+          <div className="w-20 h-1.5 bg-amber-600 mb-6 mx-auto md:mx-0"></div>
+          <p className="text-slate-500 font-sans max-w-xl">Cada pieza es monitorizada diariamente por nuestros maestros bodegueros hasta alcanzar el punto óptimo de consumo.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
           {products.map((product) => (
             <div key={product.id} className="group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col">
-              <div className="relative h-80 overflow-hidden">
+              <div className="relative h-64 md:h-80 overflow-hidden">
                 <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                <div className="absolute top-6 left-6 bg-white/95 backdrop-blur px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest">{product.category}</div>
+                <div className="absolute top-6 left-6 bg-white/95 backdrop-blur px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">{product.category}</div>
               </div>
-              <div className="p-10 flex-grow flex flex-col">
+              <div className="p-8 md:p-10 flex-grow flex flex-col">
                 <div className="flex gap-1 mb-4 text-amber-500">
                   {[...Array(product.rating)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
                 </div>
-                <h3 className="text-2xl font-bold mb-3 leading-tight">{product.name}</h3>
+                <h3 className="text-xl md:text-2xl font-bold mb-3 leading-tight">{product.name}</h3>
                 <p className="text-slate-500 font-sans text-sm mb-8 flex-grow leading-relaxed">{product.description}</p>
                 <div className="flex items-center justify-between mt-auto">
-                  <span className="text-3xl font-bold text-amber-950 font-sans">{product.price.toFixed(2)}€</span>
-                  <button onClick={() => addToCart(product)} className="p-5 bg-[#2d241e] text-white rounded-2xl hover:bg-amber-700 transition-all shadow-lg active:scale-95"><Plus size={24} /></button>
+                  <span className="text-2xl md:text-3xl font-bold text-amber-950 font-sans">{product.price.toFixed(2)}€</span>
+                  <button 
+                    onClick={() => addToCart(product)} 
+                    className="p-4 md:p-5 bg-[#2d241e] text-white rounded-2xl hover:bg-amber-700 transition-all shadow-lg active:scale-95 group-hover:translate-y-[-4px]"
+                  >
+                    <Plus size={24} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -213,80 +227,105 @@ const App = () => {
       </section>
 
       {/* Footer */}
-      <footer id="contacto" className="bg-[#1a1512] text-white pt-24 pb-12">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
-          <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center gap-2 mb-8"><ShoppingBag className="text-amber-400" size={32} /><span className="text-3xl font-black italic uppercase">La Dehesa</span></div>
-            <p className="text-slate-400 font-sans text-sm leading-relaxed">Artesanos del jamón ibérico. Comprometidos con la calidad suprema y la cría sostenible en libertad.</p>
+      <footer id="contacto" className="bg-[#1a1512] text-white pt-20 pb-12">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 mb-20">
+          <div className="col-span-1">
+            <div className="flex items-center gap-2 mb-8">
+              <ShoppingBag className="text-amber-400" size={32} />
+              <span className="text-2xl font-black italic uppercase tracking-tighter">La Dehesa</span>
+            </div>
+            <p className="text-slate-400 font-sans text-sm leading-relaxed">
+              Artesanos del jamón ibérico. Comprometidos con la calidad suprema y la cría sostenible en libertad desde hace un siglo.
+            </p>
           </div>
           <div>
-            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-xs">Empresa</h4>
+            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-[10px]">Navegación</h4>
             <ul className="space-y-4 font-sans text-slate-400 text-sm">
-              <li><a href="#historia" className="hover:text-white transition-colors">Visita la bodega</a></li>
-              <li><a href="#historia" className="hover:text-white transition-colors">Proceso de curación</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Inicio</a></li>
+              <li><a href="#productos" className="hover:text-white transition-colors">Productos</a></li>
+              <li><a href="#historia" className="hover:text-white transition-colors">Nuestra Historia</a></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-xs">Atención</h4>
+            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-[10px]">Contacto</h4>
             <ul className="space-y-4 font-sans text-slate-400 text-sm">
-              <li className="flex items-center gap-3"><Phone size={14} className="text-amber-600" /> +34 900 000 000</li>
-              <li className="flex items-center gap-3"><MapPin size={14} className="text-amber-600" /> Huelva, España</li>
+              <li className="flex items-center gap-3"><Phone size={14} className="text-amber-600" /> +34 900 123 456</li>
+              <li className="flex items-center gap-3"><MapPin size={14} className="text-amber-600" /> Jabugo, Huelva</li>
             </ul>
           </div>
           <div>
-            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-xs">Newsletter</h4>
+            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-[10px]">Síguenos</h4>
             <div className="flex gap-4">
-              <button className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-amber-600 transition-all"><Instagram size={20} /></button>
-              <button className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-amber-600 transition-all"><Facebook size={20} /></button>
+              <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-amber-600 transition-all"><Instagram size={18} /></button>
+              <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-amber-600 transition-all"><Facebook size={18} /></button>
             </div>
           </div>
         </div>
         <div className="border-t border-white/5 text-center pt-12 text-slate-600 font-sans text-[10px] uppercase tracking-widest">
-          © 2026 La Dehesa Ibérica • Jabugo • Todos los derechos reservados
+          © 2026 La Dehesa Ibérica • Jabugo • Selección Gourmet de Lujo
         </div>
       </footer>
 
-      {/* Carrito de Compra */}
+      {/* Carrito de Compra lateral */}
       {isCartOpen && (
         <div className="fixed inset-0 z-[100] overflow-hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCartOpen(false)} />
-          <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsCartOpen(false)} />
+          <div className="absolute inset-y-0 right-0 max-w-full flex">
             <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col transform transition-transform animate-in slide-in-from-right duration-500">
-              <div className="p-8 border-b border-slate-100 flex justify-between items-center">
-                <h2 className="text-2xl font-bold flex items-center gap-3"><ShoppingCart size={24} className="text-amber-700" /> Su Pedido</h2>
+              <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center">
+                <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3"><ShoppingCart size={24} className="text-amber-700" /> Su Cesta</h2>
                 <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={28} /></button>
               </div>
-              <div className="flex-grow overflow-y-auto p-8 space-y-8 font-sans">
+              <div className="flex-grow overflow-y-auto p-6 md:p-8 space-y-6 font-sans">
                 {cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center">
-                    <ShoppingBag size={64} className="opacity-10 mb-4" /><p>No hay artículos en su selección</p>
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center opacity-50">
+                    <ShoppingBag size={64} className="mb-4" />
+                    <p className="italic">Su selección está vacía</p>
                   </div>
                 ) : (
                   cart.map((item) => (
-                    <div key={item.cartId} className="flex gap-6 items-center border-b border-slate-50 pb-6">
-                      <div className="w-20 h-20 shrink-0 rounded-xl overflow-hidden"><img src={item.image} className="w-full h-full object-cover" alt={item.name} /></div>
-                      <div className="flex-grow">
-                        <h4 className="font-bold text-sm mb-1">{item.name}</h4>
-                        <p className="text-amber-900 font-bold text-lg font-serif">{item.price.toFixed(2)}€</p>
+                    <div key={item.cartId} className="flex gap-4 items-center border-b border-slate-50 pb-6 group">
+                      <div className="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-xl overflow-hidden shadow-inner">
+                        <img src={item.image} className="w-full h-full object-cover" alt={item.name} />
                       </div>
-                      <button onClick={() => removeFromCart(item.cartId)} className="p-2 text-slate-300 hover:text-red-500 transition-all"><Trash2 size={18} /></button>
+                      <div className="flex-grow">
+                        <h4 className="font-bold text-xs md:text-sm mb-1 leading-tight">{item.name}</h4>
+                        <p className="text-amber-900 font-bold text-base md:text-lg font-serif">{item.price.toFixed(2)}€</p>
+                      </div>
+                      <button onClick={() => removeFromCart(item.cartId)} className="p-2 text-slate-300 hover:text-red-500 transition-all">
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   ))
                 )}
               </div>
               {cart.length > 0 && (
-                <div className="p-8 border-t border-slate-100 bg-slate-50/50">
+                <div className="p-6 md:p-8 border-t border-slate-100 bg-slate-50/80 backdrop-blur">
                   <div className="flex justify-between items-end mb-8">
-                    <div><span className="font-sans text-slate-400 uppercase tracking-widest text-[10px] block mb-1">Total Pedido</span></div>
-                    <span className="text-4xl font-bold text-amber-950 font-serif">{cartTotal.toFixed(2)}€</span>
+                    <span className="font-sans text-slate-400 uppercase tracking-widest text-[10px] block mb-1">Total (IVA incl.)</span>
+                    <span className="text-3xl md:text-4xl font-bold text-amber-950 font-serif">{cartTotal.toFixed(2)}€</span>
                   </div>
-                  <button className="w-full bg-[#2d241e] text-white py-5 rounded-2xl font-sans font-bold hover:bg-amber-800 transition-all shadow-xl">Proceder al Pago</button>
+                  <button className="w-full bg-[#2d241e] text-white py-4 md:py-5 rounded-2xl font-sans font-bold hover:bg-amber-900 transition-all shadow-xl active:scale-95">Finalizar Pedido</button>
                 </div>
               )}
             </div>
           </div>
         </div>
       )}
+
+      {/* Estilos Globales Extra para asegurar que Tailwind funcione en Vercel */}
+      <style>{`
+        @keyframes pulse-slow {
+          0%, 100% { transform: scale(1.05); }
+          50% { transform: scale(1.1); }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 15s ease-in-out infinite;
+        }
+        html {
+          scroll-behavior: smooth;
+        }
+      `}</style>
     </div>
   );
 };
