@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Star, Award, ShieldCheck, MapPin, Menu, X, Instagram, Facebook, Phone, ShoppingBag, Plus, Trash2, Calendar, Users } from 'lucide-react';
 
 /**
- * Datos de productos premium
+ * IMPORTANTE PARA VERCEL: 
+ * Si tu web se ve como texto plano sin diseño, asegúrate de que tu proyecto 
+ * tenga instalado Tailwind CSS. Este código utiliza clases estándar de Tailwind.
  */
+
 const products = [
   {
     id: 1,
@@ -40,14 +43,12 @@ const App = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Control del scroll para efectos visuales
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Lógica del carrito
   const addToCart = (product) => {
     setCart(prev => [...prev, { ...product, cartId: Date.now() + Math.random() }]);
     setIsCartOpen(true);
@@ -313,7 +314,7 @@ const App = () => {
         </div>
       )}
 
-      {/* Estilos Globales Extra para asegurar que Tailwind funcione en Vercel */}
+      {/* Estilos Globales Extra */}
       <style>{`
         @keyframes pulse-slow {
           0%, 100% { transform: scale(1.05); }
