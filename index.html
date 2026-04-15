@@ -2,10 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Star, Award, ShieldCheck, MapPin, Menu, X, Instagram, Facebook, Phone, ShoppingBag, Plus, Trash2, Calendar, Users } from 'lucide-react';
 
 /**
- * IMPORTANTE PARA VERCEL: 
- * Si tu web se ve como texto plano sin diseño, asegúrate de que tu proyecto 
- * tenga instalado Tailwind CSS. Este código utiliza clases estándar de Tailwind.
+ * SOLUCIÓN DE EMERGENCIA PARA ESTILOS:
+ * He añadido un componente que inyecta Tailwind CSS directamente en el <head>
+ * de tu página. Esto debería arreglar el problema visual en Vercel de inmediato.
  */
+const TailwindLoader = () => {
+  useEffect(() => {
+    // Verificamos si ya existe para no duplicarlo
+    if (!document.getElementById('tailwind-cdn')) {
+      const script = document.createElement('script');
+      script.id = 'tailwind-cdn';
+      script.src = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(script);
+    }
+  }, []);
+  return null;
+};
 
 const products = [
   {
@@ -62,6 +74,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-[#fcfaf7] text-[#2d241e] font-serif selection:bg-amber-200 scroll-smooth">
+      <TailwindLoader />
       
       {/* Navegación Principal */}
       <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white shadow-xl py-2 text-[#2d241e]' : 'bg-transparent py-5 text-white'}`}>
