@@ -1,0 +1,294 @@
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Star, Award, ShieldCheck, MapPin, Menu, X, Instagram, Facebook, Phone, ShoppingBag, Plus, Trash2, Calendar, Users } from 'lucide-react';
+
+/**
+ * Datos de productos premium
+ */
+const products = [
+  {
+    id: 1,
+    name: "Jamón de Bellota 100% Ibérico",
+    category: "Pata Negra",
+    price: 549.00,
+    rating: 5,
+    description: "Curación mínima de 48 meses en bodegas naturales de Jabugo. Aroma intenso y textura untuosa.",
+    image: "https://images.unsplash.com/photo-1613564834644-d13bbfd80ad3?auto=format&fit=crop&q=80&w=400"
+  },
+  {
+    id: 2,
+    name: "Paleta de Bellota Ibérica",
+    category: "Reserva Especial",
+    price: 189.00,
+    rating: 4,
+    description: "Sabor intenso y jugoso con infiltración perfecta. Ideal para los paladares más exigentes.",
+    image: "https://images.unsplash.com/photo-1544073627-467f24799c90?auto=format&fit=crop&q=80&w=400"
+  },
+  {
+    id: 3,
+    name: "Lomo Embuchado de Bellota",
+    category: "Embutidos Nobles",
+    price: 45.50,
+    rating: 5,
+    description: "Adobado con pimentón de la Vera y curado lentamente en tripa natural.",
+    image: "https://images.unsplash.com/photo-1626074353765-517a681e40be?auto=format&fit=crop&q=80&w=400"
+  }
+];
+
+const App = () => {
+  const [cart, setCart] = useState([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Control del scroll para efectos visuales
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Lógica del carrito
+  const addToCart = (product) => {
+    setCart(prev => [...prev, { ...product, cartId: Date.now() + Math.random() }]);
+    setIsCartOpen(true);
+  };
+
+  const removeFromCart = (cartId) => {
+    setCart(prev => prev.filter(item => item.cartId !== cartId));
+  };
+
+  const cartTotal = cart.reduce((acc, item) => acc + item.price, 0);
+
+  return (
+    <div className="min-h-screen bg-[#fcfaf7] text-[#2d241e] font-serif selection:bg-amber-200 scroll-smooth">
+      
+      {/* Navegación Principal */}
+      <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white shadow-xl py-2 text-[#2d241e]' : 'bg-transparent py-5 text-white'}`}>
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
+            <ShoppingBag className={scrolled ? 'text-amber-700' : 'text-amber-400'} size={28} />
+            <span className="text-2xl font-black tracking-widest uppercase italic">La Dehesa</span>
+          </div>
+          
+          <div className="hidden md:flex gap-10 font-sans text-xs font-bold uppercase tracking-[0.2em]">
+            <a href="#" className="hover:text-amber-600 transition-colors">Inicio</a>
+            <a href="#productos" className="hover:text-amber-600 transition-colors">Productos</a>
+            <a href="#historia" className="hover:text-amber-600 transition-colors">Historia</a>
+            <a href="#contacto" className="hover:text-amber-600 transition-colors">Contacto</a>
+          </div>
+
+          <div className="flex items-center gap-5">
+            <button onClick={() => setIsCartOpen(true)} className="relative p-2 transition-transform hover:scale-110 active:scale-95">
+              <ShoppingCart className={scrolled ? 'text-[#2d241e]' : 'text-white'} />
+              {cart.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                  {cart.length}
+                </span>
+              )}
+            </button>
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden">
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Menú Móvil */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center gap-8 md:hidden text-[#2d241e]">
+          <button onClick={() => setIsMenuOpen(false)} className="absolute top-6 right-6"><X size={32} /></button>
+          <a href="#" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Inicio</a>
+          <a href="#productos" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Productos</a>
+          <a href="#historia" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Historia</a>
+          <a href="#contacto" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Contacto</a>
+        </div>
+      )}
+
+      {/* Hero Section */}
+      <header className="relative h-screen flex items-center justify-center overflow-hidden bg-black">
+        <div className="absolute inset-0 opacity-70">
+          <img src="https://images.unsplash.com/photo-1599401083957-25916035f29d?auto=format&fit=crop&q=80&w=1920" alt="Bodega de jamones" className="w-full h-full object-cover scale-105" />
+        </div>
+        <div className="relative z-10 text-center px-6 max-w-5xl">
+          <div className="inline-block px-5 py-2 border border-amber-400 text-amber-400 font-sans text-xs uppercase tracking-[0.4em] mb-8 bg-black/30 backdrop-blur-sm italic">Desde 1924</div>
+          <h1 className="text-6xl md:text-9xl text-white font-bold mb-8 leading-none">Excelencia <span className="italic text-amber-400 block md:inline font-light">Ibérico</span></h1>
+          <p className="text-lg md:text-2xl text-slate-200 mb-12 font-sans max-w-2xl mx-auto leading-relaxed">Piezas maestras seleccionadas una a una en las dehesas de la Sierra de Huelva.</p>
+          <div className="flex flex-col sm:flex-row gap-5 justify-center">
+            <a href="#productos" className="bg-amber-600 text-white px-12 py-5 rounded-full font-sans font-bold hover:bg-amber-700 transition-all shadow-xl">Explorar Colección</a>
+            <a href="#historia" className="border border-white/50 text-white px-12 py-5 rounded-full font-sans font-bold hover:bg-white hover:text-black transition-all">Nuestra Historia</a>
+          </div>
+        </div>
+      </header>
+
+      {/* NUEVA SECCIÓN: HISTORIA */}
+      <section id="historia" className="py-24 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div className="relative">
+              <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl transform -rotate-3 hover:rotate-0 transition-transform duration-700">
+                <img src="https://images.unsplash.com/photo-1533630660534-d67b5791220a?auto=format&fit=crop&q=80&w=800" alt="Maestro cortador" className="w-full h-[600px] object-cover" />
+              </div>
+              <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-amber-100 rounded-full -z-0 opacity-50 blur-3xl"></div>
+              <div className="absolute top-1/2 -left-10 w-20 h-20 border-4 border-amber-600 rounded-full hidden md:block"></div>
+            </div>
+            
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 text-amber-700 font-sans font-bold uppercase tracking-widest text-xs">
+                <div className="w-8 h-px bg-amber-700"></div> El Legado de la Tierra
+              </div>
+              <h2 className="text-5xl md:text-6xl font-bold leading-tight">Un siglo de <span className="italic font-light">paciencia</span> y dedicación</h2>
+              <p className="text-slate-600 font-sans text-lg leading-relaxed">
+                Nuestra historia comienza en las dehesas de Jabugo, donde mi abuelo seleccionaba las mejores piaras de cerdos 100% ibéricos. Lo que empezó como una pequeña bodega familiar se ha convertido en un referente mundial de la gastronomía.
+              </p>
+              <div className="grid grid-cols-2 gap-8 py-6">
+                <div>
+                  <div className="flex items-center gap-3 mb-2 text-amber-700"><Calendar size={20}/> <span className="font-bold">1924</span></div>
+                  <p className="text-sm font-sans text-slate-500">Fundación de la primera bodega artesanal.</p>
+                </div>
+                <div>
+                  <div className="flex items-center gap-3 mb-2 text-amber-700"><Users size={20}/> <span className="font-bold">3ª Generación</span></div>
+                  <p className="text-sm font-sans text-slate-500">Mantenemos intactos los procesos de curación natural.</p>
+                </div>
+              </div>
+              <p className="text-slate-600 font-sans text-lg leading-relaxed italic border-l-4 border-amber-600 pl-6">
+                "El secreto no está en la prisa, sino en el tiempo que la carne pasa escuchando el silencio de la bodega."
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Valores de Marca */}
+      <section className="py-24 bg-[#fcfaf7]">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
+          <div className="flex flex-col items-center">
+            <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center text-amber-700 mb-8 transform rotate-6 hover:rotate-0 transition-transform"><Award size={40} /></div>
+            <h3 className="text-2xl font-bold mb-4 uppercase tracking-wider">Origen Jabugo</h3>
+            <p className="text-slate-500 font-sans text-base leading-relaxed">Localización privilegiada con microclima único para la curación natural.</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center text-amber-700 mb-8"><ShieldCheck size={40} /></div>
+            <h3 className="text-2xl font-bold mb-4 uppercase tracking-wider">100% Bellota</h3>
+            <p className="text-slate-500 font-sans text-base leading-relaxed">Certificación de brida negra, garantizando la pureza máxima de la raza.</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center text-amber-700 mb-8 transform -rotate-6 hover:rotate-0 transition-transform"><MapPin size={40} /></div>
+            <h3 className="text-2xl font-bold mb-4 uppercase tracking-wider">Envío Seguro</h3>
+            <p className="text-slate-500 font-sans text-base leading-relaxed">Logística especializada con control de temperatura para preservar el aroma.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Sección de Productos */}
+      <section id="productos" className="py-28 px-6 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+          <div className="max-w-xl">
+            <h2 className="text-5xl font-bold mb-6">Selección de la Casa</h2>
+            <div className="w-20 h-1.5 bg-amber-600 mb-6"></div>
+            <p className="text-slate-500 font-sans">Cada pieza es monitorizada diariamente por nuestros maestros bodegueros hasta alcanzar el punto óptimo de consumo.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          {products.map((product) => (
+            <div key={product.id} className="group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col">
+              <div className="relative h-80 overflow-hidden">
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute top-6 left-6 bg-white/95 backdrop-blur px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest">{product.category}</div>
+              </div>
+              <div className="p-10 flex-grow flex flex-col">
+                <div className="flex gap-1 mb-4 text-amber-500">
+                  {[...Array(product.rating)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
+                </div>
+                <h3 className="text-2xl font-bold mb-3 leading-tight">{product.name}</h3>
+                <p className="text-slate-500 font-sans text-sm mb-8 flex-grow leading-relaxed">{product.description}</p>
+                <div className="flex items-center justify-between mt-auto">
+                  <span className="text-3xl font-bold text-amber-950 font-sans">{product.price.toFixed(2)}€</span>
+                  <button onClick={() => addToCart(product)} className="p-5 bg-[#2d241e] text-white rounded-2xl hover:bg-amber-700 transition-all shadow-lg active:scale-95"><Plus size={24} /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer id="contacto" className="bg-[#1a1512] text-white pt-24 pb-12">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
+          <div className="col-span-1 md:col-span-1">
+            <div className="flex items-center gap-2 mb-8"><ShoppingBag className="text-amber-400" size={32} /><span className="text-3xl font-black italic uppercase">La Dehesa</span></div>
+            <p className="text-slate-400 font-sans text-sm leading-relaxed">Artesanos del jamón ibérico. Comprometidos con la calidad suprema y la cría sostenible en libertad.</p>
+          </div>
+          <div>
+            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-xs">Empresa</h4>
+            <ul className="space-y-4 font-sans text-slate-400 text-sm">
+              <li><a href="#historia" className="hover:text-white transition-colors">Visita la bodega</a></li>
+              <li><a href="#historia" className="hover:text-white transition-colors">Proceso de curación</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-xs">Atención</h4>
+            <ul className="space-y-4 font-sans text-slate-400 text-sm">
+              <li className="flex items-center gap-3"><Phone size={14} className="text-amber-600" /> +34 900 000 000</li>
+              <li className="flex items-center gap-3"><MapPin size={14} className="text-amber-600" /> Huelva, España</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-xs">Newsletter</h4>
+            <div className="flex gap-4">
+              <button className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-amber-600 transition-all"><Instagram size={20} /></button>
+              <button className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center hover:bg-amber-600 transition-all"><Facebook size={20} /></button>
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-white/5 text-center pt-12 text-slate-600 font-sans text-[10px] uppercase tracking-widest">
+          © 2026 La Dehesa Ibérica • Jabugo • Todos los derechos reservados
+        </div>
+      </footer>
+
+      {/* Carrito de Compra */}
+      {isCartOpen && (
+        <div className="fixed inset-0 z-[100] overflow-hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCartOpen(false)} />
+          <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col transform transition-transform animate-in slide-in-from-right duration-500">
+              <div className="p-8 border-b border-slate-100 flex justify-between items-center">
+                <h2 className="text-2xl font-bold flex items-center gap-3"><ShoppingCart size={24} className="text-amber-700" /> Su Pedido</h2>
+                <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={28} /></button>
+              </div>
+              <div className="flex-grow overflow-y-auto p-8 space-y-8 font-sans">
+                {cart.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center">
+                    <ShoppingBag size={64} className="opacity-10 mb-4" /><p>No hay artículos en su selección</p>
+                  </div>
+                ) : (
+                  cart.map((item) => (
+                    <div key={item.cartId} className="flex gap-6 items-center border-b border-slate-50 pb-6">
+                      <div className="w-20 h-20 shrink-0 rounded-xl overflow-hidden"><img src={item.image} className="w-full h-full object-cover" alt={item.name} /></div>
+                      <div className="flex-grow">
+                        <h4 className="font-bold text-sm mb-1">{item.name}</h4>
+                        <p className="text-amber-900 font-bold text-lg font-serif">{item.price.toFixed(2)}€</p>
+                      </div>
+                      <button onClick={() => removeFromCart(item.cartId)} className="p-2 text-slate-300 hover:text-red-500 transition-all"><Trash2 size={18} /></button>
+                    </div>
+                  ))
+                )}
+              </div>
+              {cart.length > 0 && (
+                <div className="p-8 border-t border-slate-100 bg-slate-50/50">
+                  <div className="flex justify-between items-end mb-8">
+                    <div><span className="font-sans text-slate-400 uppercase tracking-widest text-[10px] block mb-1">Total Pedido</span></div>
+                    <span className="text-4xl font-bold text-amber-950 font-serif">{cartTotal.toFixed(2)}€</span>
+                  </div>
+                  <button className="w-full bg-[#2d241e] text-white py-5 rounded-2xl font-sans font-bold hover:bg-amber-800 transition-all shadow-xl">Proceder al Pago</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
