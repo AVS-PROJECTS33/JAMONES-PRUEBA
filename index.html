@@ -458,15 +458,19 @@
         registrosLocales.forEach(item => {
             const f = new Date(item.fecha);
             const fFmt = `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()}`;
+            const mesNombre = f.toLocaleString('es-ES', { month: 'long' });
             
-            if (filter && !item.desc.toLowerCase().includes(filter) && !fFmt.includes(filter)) return;
+            if (filter) {
+                const searchString = `${fFmt} ${mesNombre} ${item.desc} ${item.tipoOriginal} ${item.horasOriginales}`.toLowerCase();
+                if (!searchString.includes(filter)) return;
+            }
 
             if (item.tipoOriginal === "negativa") tNeg += item.horasCalculadas; 
             else if (item.tipoOriginal === "exceso") tExc += item.horasCalculadas;
             else tExtra += item.horasCalculadas;
 
             const mKey = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}`;
-            if (!meses[mKey]) meses[mKey] = { label: f.toLocaleString('es-ES', { month: 'long', year: 'numeric' }), items: [], vence: "" };
+            if (!meses[mKey]) meses[mKey] = { label: mesNombre, items: [], vence: "" };
             
             if (item.tipoOriginal === "extra") {
                 let c = new Date(f.getFullYear(), f.getMonth() + 4, 1);
@@ -483,7 +487,7 @@
 
         Object.keys(meses).sort((a,b) => b.localeCompare(a)).forEach(k => {
             const m = meses[k];
-            cont.innerHTML += `<div class="mes-titulo"><span style="text-transform: capitalize;">${m.label}</span>${m.vence ? '<span style="text-transform: none;">Caduca: '+m.vence+'</span>' : ''}</div>`;
+            cont.innerHTML += `<div class="mes-titulo"><span style="text-transform: capitalize;">${m.label} ${k.split('-')[0]}</span>${m.vence ? '<span style="text-transform: none;">Caduca: '+m.vence+'</span>' : ''}</div>`;
             m.items.forEach(i => {
                 const colors = { extra: 'verde', festiva: 'verde', nocturna: 'verde', negativa: 'rojo', exceso: 'amarillo' };
                 cont.innerHTML += `
