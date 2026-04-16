@@ -1,24 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Star, Award, ShieldCheck, MapPin, Menu, X, Instagram, Facebook, Phone, ShoppingBag, Plus, Trash2, Calendar, Users } from 'lucide-react';
 
-/**
- * SOLUCIÓN DE EMERGENCIA PARA ESTILOS:
- * He añadido un componente que inyecta Tailwind CSS directamente en el <head>
- * de tu página. Esto debería arreglar el problema visual en Vercel de inmediato.
- */
-const TailwindLoader = () => {
-  useEffect(() => {
-    // Verificamos si ya existe para no duplicarlo
-    if (!document.getElementById('tailwind-cdn')) {
-      const script = document.createElement('script');
-      script.id = 'tailwind-cdn';
-      script.src = 'https://cdn.tailwindcss.com';
-      document.head.appendChild(script);
-    }
-  }, []);
-  return null;
-};
-
 const products = [
   {
     id: 1,
@@ -49,17 +31,36 @@ const products = [
   }
 ];
 
-const App = () => {
+export default function App() {
+  // ESTADO NUEVO: Controla si los estilos ya se han descargado o no
+  const [stylesLoaded, setStylesLoaded] = useState(false);
+  
   const [cart, setCart] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  // EL NUEVO "PARCHE" MEJORADO: Inyecta Tailwind y avisa cuando está listo
   useEffect(() => {
+    // Si ya cargó antes, no hacemos nada
+    if (window.tailwind) {
+      setStylesLoaded(true);
+      return;
+    }
+    // Creamos la conexión a Tailwind
+    const script = document.createElement('script');
+    script.src = 'https://cdn.tailwindcss.com';
+    // Cuando termine de cargar, cambiamos el estado a "listo" (true)
+    script.onload = () => setStylesLoaded(true);
+    document.head.appendChild(script);
+  }, []);
+
+  useEffect(() => {
+    if (!stylesLoaded) return; // No hacemos nada si aún está cargando
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [stylesLoaded]);
 
   const addToCart = (product) => {
     setCart(prev => [...prev, { ...product, cartId: Date.now() + Math.random() }]);
@@ -72,9 +73,22 @@ const App = () => {
 
   const cartTotal = cart.reduce((acc, item) => acc + item.price, 0);
 
+  // LA PANTALLA DE CARGA PROTECTORA
+  // Si los estilos aún no cargan, Vercel mostrará esto en lugar del "HTML puro" feo
+  if (!stylesLoaded) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000', color: '#fbbf24', fontFamily: 'serif' }}>
+        <div style={{ width: '40px', height: '40px', border: '3px solid #fbbf24', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }}></div>
+        <h2 style={{ fontSize: '2rem', fontStyle: 'italic', letterSpacing: '0.1em' }}>La Dehesa</h2>
+        <p style={{ color: '#94a3b8', fontFamily: 'sans-serif', fontSize: '0.875rem', marginTop: '10px', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Preparando experiencia...</p>
+        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // A PARTIR DE AQUÍ: Tu web normal que ya sabemos que funciona perfecta
   return (
     <div className="min-h-screen bg-[#fcfaf7] text-[#2d241e] font-serif selection:bg-amber-200 scroll-smooth">
-      <TailwindLoader />
       
       {/* Navegación Principal */}
       <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white shadow-xl py-2 text-[#2d241e]' : 'bg-transparent py-5 text-white'}`}>
@@ -342,6 +356,4 @@ const App = () => {
       `}</style>
     </div>
   );
-};
-
-export default App;
+}
