@@ -2,412 +2,504 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <title>REGISTRO HORAS CLOUD</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA DE CONTROL OPERATIVO - EL PATRÓN</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/1828/1828919.png">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <!-- Librerías para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     
     <style>
-        :root {
-            --primary: #00f2ff;
-            --primary-glow: rgba(0, 242, 255, 0.5);
-            --bg-dark: #050a14;
-            --card-bg: rgba(10, 20, 35, 0.95);
-            --text: #ffffff;
-            --text-muted: #94a3b8;
-            --accent-green: #22c55e;
-            --accent-purple: #a855f7;
-            --accent-orange: #f97316;
-            --accent-teams: #464eb8;
-            --glass-border: rgba(0, 242, 255, 0.3);
-            --grid-color: rgba(0, 242, 255, 0.05);
-            /* Tipografías */
-            --font-title: 'Syncopate', sans-serif;
-            --font-body: 'Inter', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: var(--font-body);
-            background: 
-                linear-gradient(rgba(5, 10, 20, 0.8), rgba(5, 10, 20, 0.9)),
-                url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: var(--text);
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            font-size: 20px;
-        }
-
-        /* Efecto HUD Grid */
-        body::after {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(var(--grid-color) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        /* --- Header --- */
-        header {
-            background: rgba(2, 6, 12, 0.98);
-            padding: 1.5rem 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(20px);
-            border-bottom: 4px solid var(--primary);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-            position: sticky;
-            top: 0;
-            z-index: 2000;
-        }
-
-        .logo-area h1 {
-            margin: 0;
-            font-size: 1.8rem;
-            font-family: var(--font-title);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            color: var(--primary);
-            text-shadow: 0 0 15px var(--primary-glow);
-        }
-
-        /* --- Layout --- */
-        .main-content {
-            flex: 1;
-            padding: 3rem 2rem;
-            max-width: 1600px;
-            margin: 0 auto;
-            width: 100%;
-            z-index: 2;
-        }
-
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 2.5rem;
-        }
-
-        /* --- Cards --- */
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(25px);
-            padding: 2.5rem;
-            border: 2px solid var(--glass-border);
-            position: relative;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 0 30px rgba(0, 242, 255, 0.15);
-        }
-
-        .card h2 {
-            margin: 0 0 2rem 0;
-            font-family: var(--font-title);
-            font-size: 1.2rem;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        /* --- Botones --- */
-        .button-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-        }
-
-        button {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1.4rem 1.6rem;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.2s;
-            font-family: var(--font-body);
-        }
-
-        button:hover {
-            background: rgba(0, 242, 255, 0.2);
-            color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .btn-green { border-right: 6px solid var(--accent-green); }
-        .btn-purple { border-right: 6px solid var(--accent-purple); }
-        .btn-orange { border-right: 6px solid var(--accent-orange); }
-        .btn-teams { border-right: 6px solid var(--accent-teams); color: #cbd5e1; }
-        .btn-teams:hover { color: white; background: rgba(70, 78, 184, 0.3); border-color: #6069d1; }
+        * { box-sizing: border-box; }
         
-        .btn-primary-solid {
-            background: var(--primary);
-            color: #000;
-            border: none;
+        :root {
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #0ea5e9;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --primary: #3b82f6;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        body { 
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-size: 15px;
+        }
+
+        .container { padding: 16px 12px; max-width: 600px; margin: 0 auto; }
+
+        /* PANTALLA DE LOGIN */
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
         }
-
-        /* --- SOLUCIÓN DESPLEGABLE: Z-INDEX GLOBAL --- */
-        .dropdown {
-            position: relative;
+        .login-card {
+            background: var(--bg-card);
+            padding: 30px 20px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
             width: 100%;
+            max-width: 350px;
+            border: 1px solid var(--border-color);
         }
-
-        .dropdown-content {
-            display: none;
-            background: #08101d;
-            border: 3px solid var(--primary);
-            position: absolute;
+        .btn-google {
+            background: white;
+            color: #333;
+            border: 1px solid #ccc;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             width: 100%;
-            top: 100%;
-            left: 0;
-            z-index: 9999; 
-            box-shadow: 0 30px 60px rgba(0,0,0,0.9);
-            margin-top: 5px;
+            cursor: pointer;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        .btn-guest {
+            background: var(--bg-body);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
         }
 
-        .dropdown-content a {
-            display: block;
-            padding: 1.4rem;
-            color: var(--text);
-            text-decoration: none;
-            font-size: 1.1rem;
-            font-weight: 800;
-            border-bottom: 1px solid rgba(0, 242, 255, 0.1);
-            transition: background 0.2s;
+        /* HEADER APP */
+        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 4px; }
+        h1 { margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-main); }
+        .user-badge { font-size: 12px; color: var(--text-muted); display: block; margin-top: 4px; }
+        
+        .header-btns { display: flex; gap: 8px; }
+        .btn-icon { 
+            background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color);
+            padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 20px;
         }
 
-        .dropdown-content a:hover {
-            background: var(--primary);
-            color: #000;
-        }
+        /* CARDS & FORMS (Igual que antes) */
+        .top-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .card { background: var(--bg-card); padding: 20px; border-radius: var(--radius); margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .top-cards .card { margin-bottom: 0; padding: 16px; text-align: center; border-top-width: 4px; }
+        .card-extra { grid-column: 1 / -1; border-top-color: var(--success); }
+        .negative { border-top-color: var(--danger); }
+        .exceso { border-top-color: var(--warning); }
+        .card h3 { margin: 0 0 4px 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .card-extra h2 { font-size: 2.2rem; margin: 0; color: var(--success); font-weight: 800; }
+        .card h2 { font-size: 1.6rem; margin: 0; font-weight: 800; }
+        
+        .form-group { text-align: left; margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
+        input, select { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; background: var(--bg-body); color: var(--text-main); }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+        
+        button.btn-primary { background: var(--primary); color: white; border: none; font-weight: 700; margin-top: 8px; border-radius: 8px; padding: 12px 16px; width: 100%; cursor: pointer; }
 
-        /* --- Footer / Time --- */
-        .time-display {
-            text-align: right;
-            font-family: var(--font-mono);
-        }
+        .item { border-bottom: 1px solid var(--border-color); padding: 16px 0; display: flex; justify-content: space-between; align-items: center; }
+        .tipo { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 12px; display: inline-block; margin-bottom: 6px; }
+        .verde { color: #047857; background: #d1fae5; }
+        .rojo { color: #be123c; background: #ffe4e6; }
+        .amarillo { color: #b45309; background: #fef3c7; }
+        .dark-mode .verde { color: #34d399; background: rgba(16, 185, 129, 0.15); }
+        .dark-mode .rojo { color: #fb7185; background: rgba(225, 29, 72, 0.15); }
+        .dark-mode .amarillo { color: #fbbf24; background: rgba(245, 158, 11, 0.15); }
+        
+        .borrar-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 8px 14px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;}
+        
+        .mes-titulo { background: var(--bg-body); color: var(--text-muted); padding: 8px 12px; border-radius: 6px; margin-top: 24px; font-weight: 700; font-size: 13px; display: flex; justify-content: space-between; border: 1px solid var(--border-color); text-transform: uppercase; }
 
-        #clock {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            display: block;
-        }
+        #mensaje { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text-main); color: var(--bg-card); padding: 10px 24px; border-radius: 30px; display: none; z-index: 9999; font-weight: 600; }
 
-        /* Notificaciones HUD */
-        #toast {
-            position: fixed;
-            bottom: 40px;
-            right: 40px;
-            background: #000;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 15px 30px;
-            font-family: var(--font-mono);
-            z-index: 10000;
-            transform: translateX(200%);
-            transition: 0.4s ease;
-        }
-        #toast.show { transform: translateX(0); }
-
-        @media (max-width: 768px) {
-            .container { grid-template-columns: 1fr; }
-            header { padding: 1rem; }
-            .logo-area h1 { font-size: 1.4rem; }
-        }
+        /* Modales */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--bg-card); padding: 24px; border-radius: 16px; text-align: center; max-width: 340px; width: 90%; border: 1px solid var(--border-color); }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+        .modal-buttons button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;}
+        #modalBtnCancel { background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); }
+        #modalBtnOk { background: var(--danger); color: white; }
     </style>
 </head>
-
 <body>
-    <header>
-        <div class="logo-area">
-            <h1>SISTEMA OPERATIVO AP</h1>
+
+<!-- PANTALLA DE LOGIN -->
+<div id="login-screen">
+    <div class="login-card">
+        <h2 style="margin-top:0">Control de Horas</h2>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Inicia sesión para guardar tus registros en la nube.</p>
+        
+        <button class="btn-google" onclick="loginGoogle()">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Entrar con Google
+        </button>
+        
+        <button class="btn-google btn-guest" onclick="loginAnonimo()">
+            Entrar como Invitado
+        </button>
+    </div>
+</div>
+
+<!-- APLICACIÓN PRINCIPAL -->
+<div id="app-container" class="container" style="display: none;">
+    <div class="header-container">
+        <div>
+            <h1>REGISTRO HORAS</h1>
+            <span id="user-name-display" class="user-badge">Cargando usuario...</span>
         </div>
-        <div class="time-display">
-            <span id="clock">00:00:00</span>
-            <span id="date">--/--/----</span>
-        </div>
-    </header>
-
-    <div class="main-content">
-        <div class="container">
-            
-            <!-- LOGÍSTICA -->
-            <div class="card">
-                <h2>📦 LOGÍSTICA</h2>
-                <div class="button-grid">
-                    <button onclick="abrirLinks3()">Consumibles PAQ ➡</button>
-                    <button onclick="abrirLinks4()">Descarga e Inventario PRC ➡</button>
-                    <button onclick="abrirLinks()">Recordatorios Niponas ➡</button>
-                </div>
-            </div>
-
-            <!-- PLANIFICACIÓN -->
-            <div class="card" style="z-index: 1000;">
-                <h2>📅 PLANIFICACIÓN</h2>
-                <div class="button-grid">
-                    <button onclick="abrirLinks2()">Turnos / Vacaciones 📅</button>
-                    <button class="btn-teams" onclick="abrirTeams()">MS TEAMS DESKTOP 👥</button>
-                    <div class="dropdown">
-                        <button onclick="toggleMenu()" class="btn-primary-solid">⏱️ HORAS EXTRAS ▼</button>
-                        <div id="menu5" class="dropdown-content">
-                            <a href="#" onclick="abrirLinks5_1()">ALBERTO</a>
-                            <a href="#" onclick="abrirLinks5_2()">LUIS</a>
-                            <a href="#" onclick="abrirLinks5_3()">IVAN</a>
-                            <a href="#" onclick="abrirLinks5_4()">PACO</a>
-                            <a href="#" onclick="abrirLinks5_5()">NATALIA</a>
-                            <a href="#" onclick="abrirLinks5_6()">ENZO</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SOLICITUDES -->
-            <div class="card">
-                <h2>📝 SOLICITUDES</h2>
-                <div class="button-grid">
-                    <button class="btn-green" onclick="abrirComedor()">COMEDOR 🍽️</button>
-                    <button class="btn-purple" onclick="abrirRRHH()">SOLICITUDES RRHH 📋</button>
-                    <button class="btn-orange" onclick="abrirMySpace()">MI ESPACIO INET 🌐</button>
-                </div>
-            </div>
-
-            <!-- AUWA -->
-            <div class="card">
-                <h2>🏭 SISTEMA AUWA</h2>
-                <div class="button-grid">
-                    <button onclick="abrirPRC()">TERMINALES PRC 🖥️</button>
-                    <button onclick="abrirPAQ()">TERMINALES PAQ 📦</button>
-                </div>
-            </div>
-
+        <div class="header-btns">
+            <button class="btn-icon" onclick="toggleModo()">🌓</button>
+            <button class="btn-icon" onclick="logout()" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">Salir</button>
         </div>
     </div>
 
-    <div id="toast">> ACCESO_CONFIRMADO</div>
+    <div class="top-cards">
+        <div class="card card-extra">
+            <h3>Extra Acumuladas</h3>
+            <h2 id="totalExtra">0.00</h2>
+        </div>
+        <div class="card negative">
+            <h3>Negativas</h3>
+            <h2 id="totalNeg">0.00</h2>
+        </div>
+        <div class="card exceso">
+            <h3>Exceso</h3>
+            <h2 id="totalExceso">0.00</h2>
+        </div>
+    </div>
 
-    <script>
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('clock').textContent = now.toLocaleTimeString('es-ES', { hour12: false });
-            document.getElementById('date').textContent = now.toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase();
-        }
-        setInterval(updateTime, 1000);
-        updateTime();
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = "> " + msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-
-        // Función específica para abrir en VENTANA nueva (Pop-up)
-        function abrirVentana(url, nombre) {
-            const caracteristicas = "width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
-            const win = window.open(url, nombre, caracteristicas);
-            if (win) showToast("VENTANA INICIADA: " + nombre);
-            else showToast("POP-UP BLOQUEADO");
-        }
-
-        function abrir(url) {
-            const win = window.open(url, '_blank');
-            if (win) showToast("EJECUTANDO...");
-            else showToast("BLOQUEADO POR NAVEGADOR");
-        }
-
-        function abrirTeams() {
-            showToast("ABRIENDO TEAMS...");
-            window.location.href = "msteams:/";
-        }
-
-        // Enlaces (IDs y URLs originales)
-        function abrirComedor() { abrir("https://sscc.central.inditex.grp/gesconsw/pedidosweb/index.html#/eat/"); }
-        function abrirRRHH() { abrir("https://sscc.central.inditex.grp/inetweb/web/es/tordera/solicitudesRRHH_MDLog"); }
-        function abrirMySpace() { abrir("https://auth.inditex.com/openam/XUI/?realm=/itxid&goto=https://auth.inditex.com:443/openam/oauth2/realms/root/realms/itxid/authorize?response_type%3Dcode%26client_id%3Doauthmyspacepro%26state%3DM91pPfDwGb6JGXOdDz0KLQ%26code_challenge%3D64eyp9Sx6rHT6yBYmc4d-Co1i6w2h3foJ0ZqXWp97LM%26code_challenge_method%3DS256%26redirect_uri%3Dhttps://sscc.central.inditex.grp/msshell/api/auth/login%26scope%3Dopenid%2520profile%2520intranet%26ForceAuth%3Dtrue%26nonce%3Dos29Sid9fivkQ1ikxxnOuQ%26prompt%3D#login/"); }
+    <div class="card">
+        <h3 style="color: var(--text-main); margin-bottom: 16px; font-size: 1.1rem; text-transform: none;">Nuevo Registro</h3>
         
-        function abrirLinks() { 
-            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7Bdf0c599e-e4f6-4a19-8dd0-5f41a708bb1e%7D&web=1");
-            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7Ba641cc19-c28e-4149-b7a0-4459c1f9d3d9%7D&web=1");
-        }
+        <div class="form-group">
+            <label>Tipo de hora</label>
+            <select id="tipo">
+                <option value="extra">➕ Extra (x1.75)</option>
+                <option value="negativa">➖ Negativa (x1.0)</option>
+                <option value="festiva">🎉 Festiva (x2.25)</option>
+                <option value="nocturna">🌙 Nocturna (x2.0)</option>
+                <option value="exceso">⚠️ Exceso (x1.0)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Horas</label>
+            <input type="number" id="horas" placeholder="Ej: 2.5" step="0.01">
+        </div>
+        <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="fecha">
+        </div>
+        <div class="form-group">
+            <label>Observaciones</label>
+            <input type="text" id="desc" placeholder="Nota rápida...">
+        </div>
+        <button class="btn-primary" onclick="guardar()">GUARDAR EN LA NUBE</button>
+    </div>
 
-        function abrirLinks2() {
-            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7Bdf0c599e-e4f6-4a19-8dd0-5f41a708bb1e%7D&web=1");
-            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B72eeff7f-3903-4ea4-a479-0a4b33bd71d0%7D&web=1");
-        }
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin:0; font-size: 1.1rem; color: var(--text-main); text-transform:none;">Historial Sincronizado</h3>
+            <button class="btn-icon" style="background: var(--success); color: white; border: none;" onclick="exportarPDF()">📄 PDF</button>
+        </div>
+        <input type="text" id="buscador" placeholder="Buscar por nota o fecha..." oninput="filtrarLocal()">
+        <div id="lista-cargando" style="text-align:center; padding: 20px; color: var(--text-muted);">Sincronizando datos...</div>
+        <div id="lista"></div>
+    </div>
+</div>
 
-        function abrirLinks3() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B45c79c82-bb05-4707-87dd-7c5b1beebc19%7D&web=1"); }
+<div id="mensaje">✅</div>
+
+<!-- Modal de Confirmación -->
+<div id="customModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="margin-top:0; margin-bottom:15px; font-size: 1.1rem;">Confirmación</h3>
+        <p id="modalText" style="font-size: 15px; color: var(--text-muted); margin-bottom: 20px;"></p>
+        <div class="modal-buttons">
+            <button id="modalBtnCancel">Cancelar</button>
+            <button id="modalBtnOk">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- FIREBASE Y LÓGICA DE LA APP (Como un Módulo) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // 🔴🔴🔴 PASO 3: PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE 🔴🔴🔴
+    // Borra esto y pega lo que te da Firebase en el Paso 1
+    let firebaseConfig = {
+        apiKey: "AIzaSyA1ZDWVjptthMonjh3izMHo12zSCatIijo",
+        authDomain: "registro-horas-fd560.firebaseapp.com",
+        projectId: "registro-horas-fd560",
+        storageBucket: "registro-horas-fd560.firebasestorage.app",
+        messagingSenderId: "826522376259",
+        appId: "1:826522376259:web:d137f77934da0adc011cf6",
+        measurementId: "G-SD817XEWSH"
+    };
+
+    // (Código interno para que funcione en esta vista previa, no lo borres)
+    if (typeof __firebase_config !== 'undefined') { firebaseConfig = JSON.parse(__firebase_config); }
+    const appIdStr = typeof __app_id !== 'undefined' ? __app_id : 'horas-md-vercel';
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let unsubscribeData = null;
+    let registrosLocales = []; // Guarda los datos en memoria para filtrar
+
+    // --- AUTENTICACIÓN ---
+    
+    // Función para auto-login en la vista previa de esta pantalla
+    const initAuth = async () => {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            try { await signInWithCustomToken(auth, __initial_auth_token); } catch(e){}
+        }
+    };
+    initAuth();
+
+    window.loginGoogle = async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            await signInWithPopup(auth, provider);
+        } catch (error) {
+            console.error(error);
+            showModal("Error al conectar con Google. (Si estás en la vista previa, usa el modo Invitado).");
+        }
+    };
+
+    window.loginAnonimo = async () => {
+        try { await signInAnonymously(auth); } 
+        catch (error) { showModal("Error al entrar como invitado."); }
+    };
+
+    window.logout = () => signOut(auth);
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            
+            const nombre = user.isAnonymous ? "Invitado (Temporal)" : (user.displayName || user.email);
+            document.getElementById('user-name-display').innerText = `👋 Hola, ${nombre}`;
+            
+            cargarDatosNube();
+        } else {
+            currentUser = null;
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('app-container').style.display = 'none';
+            if (unsubscribeData) { unsubscribeData(); unsubscribeData = null; }
+        }
+    });
+
+    // --- BASE DE DATOS (FIRESTORE) ---
+
+    function cargarDatosNube() {
+        if (!currentUser) return;
         
-        function abrirLinks4() {
-            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B48eeaea3-c3aa-4a3f-8201-f92b0939a6f4%7D&web=1");
-            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7Beb4dbc94-12b8-4c91-b72e-b96a6a408dd2%7D&web=1");
+        // Referencia a la colección privada de este usuario
+        const ref = collection(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros');
+        
+        document.getElementById("lista-cargando").style.display = "block";
+        document.getElementById("lista").innerHTML = "";
+
+        // onSnapshot escucha cambios en tiempo real
+        unsubscribeData = onSnapshot(ref, (snapshot) => {
+            registrosLocales = [];
+            snapshot.forEach(docSnap => {
+                registrosLocales.push({ ...docSnap.data(), id: docSnap.id });
+            });
+            // Ordenar por fecha (más reciente primero)
+            registrosLocales.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            document.getElementById("lista-cargando").style.display = "none";
+            renderizarUI();
+        }, (error) => {
+            console.error("Error al leer:", error);
+            document.getElementById("lista-cargando").innerText = "Error de permisos al leer la nube.";
+        });
+    }
+
+    window.guardar = async () => {
+        const hIn = parseFloat(document.getElementById("horas").value);
+        const desc = document.getElementById("desc").value || "-";
+        const fecha = document.getElementById("fecha").value;
+        const tipoInput = document.getElementById("tipo").value;
+
+        if (isNaN(hIn) || hIn === 0) { showModal("Indica una cantidad de horas válida."); return; }
+        if (!fecha) { showModal("La fecha es necesaria."); return; }
+        if (!currentUser) { showModal("Debes iniciar sesión."); return; }
+
+        let factor = 1.0;
+        if (hIn > 0) {
+            if (tipoInput === "extra") factor = 1.75;
+            else if (tipoInput === "festiva") factor = 2.25;
+            else if (tipoInput === "nocturna") factor = 2.0;
         }
 
-        function abrirLinks5_1() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/AUTONOMOSPROFESIONALES/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7Bfcccb126-f75d-40b6-a482-690a4f592c55%7D&web=1"); }
-        function abrirLinks5_2() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/AUTONOMOSPROFESIONALES/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B6eb0a5ab-ae99-43c4-9031-f9810fc40a4e%7D&web=1"); }
-        function abrirLinks5_3() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/AUTONOMOSPROFESIONALES/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B8d0421c8-1608-46f6-807c-8a23af7b5002%7D&web=1"); }
-        function abrirLinks5_4() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/AUTONOMOSPROFESIONALES/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B7ba69976-1a5b-4a77-b936-d3901f979f46%7D&web=1"); }
-        function abrirLinks5_5() { abrir("https://login.microsoftonline.com/"); }
-        function abrirLinks5_6() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/AUTONOMOSPROFESIONALES/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B3425aefc-5a64-4557-8ca6-1262f5572b90%7D&web=1"); }
+        const nuevoRegistro = {
+            horasCalculadas: hIn * factor,
+            horasOriginales: hIn,
+            desc: desc,
+            fecha: fecha,
+            tipoOriginal: tipoInput,
+            timestamp: Date.now()
+        };
 
-        // AUWA: Apertura en VENTANAS independientes
-        function abrirPRC() {
-            abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PRC_COTA_2", "PRC_COTA_2");
-            setTimeout(() => {
-                abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PRC_COTA_0_1", "PRC_COTA_0_1");
-            }, 300);
+        try {
+            const ref = collection(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros');
+            await addDoc(ref, nuevoRegistro); // Guardar en la nube
+            
+            document.getElementById("horas").value = "";
+            document.getElementById("desc").value = "";
+            showToast("Guardado en la nube");
+        } catch (error) {
+            console.error(error);
+            showModal("Error al guardar en la nube.");
         }
+    };
 
-        function abrirPAQ() {
-            abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PAQ_COTA_0", "PAQ_COTA_0");
-            setTimeout(() => abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PAQ_COTA_1", "PAQ_COTA_1"), 300);
-            setTimeout(() => abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PAQ_COTA_2", "PAQ_COTA_2"), 600);
-            setTimeout(() => abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PAQ_COTA_3", "PAQ_COTA_3"), 900);
-        }
-
-        function toggleMenu() {
-            const menu = document.getElementById("menu5");
-            const isOpen = menu.style.display === "block";
-            menu.style.display = isOpen ? "none" : "block";
-        }
-
-        window.onclick = function(e) {
-            if (!e.target.closest('.dropdown')) {
-                document.getElementById("menu5").style.display = "none";
+    window.borrarRegistro = (docId) => {
+        showModal("¿Borrar este registro de la nube?", true, async () => {
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros', docId);
+                await deleteDoc(docRef); // Borrar de la nube
+                showToast("Registro eliminado");
+            } catch (error) {
+                showModal("Error al borrar.");
             }
+        });
+    };
+
+    // --- INTERFAZ DE USUARIO ---
+
+    window.filtrarLocal = () => { renderizarUI(); };
+
+    function renderizarUI() {
+        const cont = document.getElementById("lista");
+        cont.innerHTML = "";
+        let tExtra = 0, tNeg = 0, tExc = 0;
+        
+        const filter = document.getElementById("buscador").value.toLowerCase();
+        const meses = {};
+
+        registrosLocales.forEach(item => {
+            const f = new Date(item.fecha);
+            const fFmt = `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()}`;
+            
+            if (filter && !item.desc.toLowerCase().includes(filter) && !fFmt.includes(filter)) return;
+
+            if (item.tipoOriginal === "negativa") tNeg += item.horasCalculadas; 
+            else if (item.tipoOriginal === "exceso") tExc += item.horasCalculadas;
+            else tExtra += item.horasCalculadas;
+
+            const mKey = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}`;
+            if (!meses[mKey]) meses[mKey] = { label: f.toLocaleString('es-ES', { month: 'long', year: 'numeric' }), items: [] };
+            meses[mKey].items.push({ ...item, fFmt });
+        });
+
+        if(Object.keys(meses).length === 0 && registrosLocales.length > 0) {
+            cont.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-muted);">No hay coincidencias.</div>`;
+        } else if (registrosLocales.length === 0) {
+            cont.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">Aún no tienes registros en la nube.</div>`;
         }
-    </script>
+
+        Object.keys(meses).sort((a,b) => b.localeCompare(a)).forEach(k => {
+            const m = meses[k];
+            cont.innerHTML += `<div class="mes-titulo">${m.label}</div>`;
+            m.items.forEach(i => {
+                const colors = { extra: 'verde', festiva: 'verde', nocturna: 'verde', negativa: 'rojo', exceso: 'amarillo' };
+                cont.innerHTML += `
+                    <div class="item">
+                        <div style="flex: 1;">
+                            <span class="tipo ${colors[i.tipoOriginal]}">${i.tipoOriginal.toUpperCase()}</span><br>
+                            <b style="font-size: 15px;">${i.horasOriginales}h</b> <small style="color: var(--text-muted);">(${i.horasCalculadas.toFixed(2)}h)</small><br>
+                            <small style="font-size: 13px; color: var(--text-muted); display:block; margin-top:4px">${i.fFmt} • ${i.desc}</small>
+                        </div>
+                        <button class="borrar-btn" onclick="borrarRegistro('${i.id}')">Borrar</button>
+                    </div>`;
+            });
+        });
+
+        document.getElementById("totalExtra").innerText = tExtra.toFixed(2);
+        document.getElementById("totalNeg").innerText = tNeg.toFixed(2);
+        document.getElementById("totalExceso").innerText = tExc.toFixed(2);
+    }
+
+    // Funciones de UI generales (Modo Oscuro, Toast, PDF...)
+    window.toggleModo = () => {
+        document.body.classList.toggle("dark-mode");
+        localStorage.setItem("modo", document.body.classList.contains("dark-mode") ? "dark" : "light");
+    };
+    if (localStorage.getItem("modo") === "dark") document.body.classList.add("dark-mode");
+
+    function showToast(t) {
+        const m = document.getElementById("mensaje");
+        m.style.display = "block"; m.innerText = t + " ✅"; 
+        setTimeout(() => m.style.display = "none", 2500);
+    }
+
+    let mCb = null;
+    window.showModal = (msg, conf = false, cb = null) => {
+        document.getElementById("modalText").innerText = msg;
+        document.getElementById("customModal").style.display = "flex";
+        document.getElementById("modalBtnCancel").style.display = conf ? "block" : "none";
+        document.getElementById("modalBtnOk").innerText = conf ? "Confirmar" : "Entendido";
+        document.getElementById("modalBtnOk").style.background = conf ? "var(--danger)" : "var(--primary)";
+        mCb = cb;
+    };
+    
+    document.getElementById("modalBtnOk").onclick = () => {
+        document.getElementById("customModal").style.display = "none";
+        if (mCb) mCb();
+    };
+    document.getElementById("modalBtnCancel").onclick = () => {
+        document.getElementById("customModal").style.display = "none";
+    };
+
+    window.exportarPDF = () => {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFontSize(16); doc.text("REGISTRO HORAS CLOUD", 14, 20);
+        
+        const tableData = registrosLocales.map(i => [
+            i.fecha.split('-').reverse().join('/'), 
+            i.tipoOriginal.toUpperCase(), 
+            i.horasOriginales.toFixed(2), 
+            i.horasCalculadas.toFixed(2), 
+            i.desc
+        ]);
+
+        doc.autoTable({ startY: 30, head: [['Fecha', 'Tipo', 'Horas Base', 'Horas Calc.', 'Observaciones']], body: tableData });
+        doc.save(`Horas_MD_${new Date().toLocaleDateString()}.pdf`);
+    };
+
+    document.getElementById('fecha').valueAsDate = new Date();
+</script>
 </body>
+</html>
