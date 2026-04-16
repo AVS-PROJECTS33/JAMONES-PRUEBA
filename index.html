@@ -1,376 +1,413 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Star, Award, ShieldCheck, MapPin, Menu, X, Instagram, Facebook, Phone, ShoppingBag, Plus, Trash2, Calendar, Users } from 'lucide-react';
-
-const products = [
-  {
-    id: 1,
-    name: "Jamón de Bellota 100% Ibérico",
-    category: "Pata Negra",
-    price: 549.00,
-    rating: 5,
-    description: "Curación mínima de 48 meses en bodegas naturales de Jabugo. Aroma intenso y textura untuosa.",
-    image: "https://images.unsplash.com/photo-1613564834644-d13bbfd80ad3?auto=format&fit=crop&q=80&w=400"
-  },
-  {
-    id: 2,
-    name: "Paleta de Bellota Ibérica",
-    category: "Reserva Especial",
-    price: 189.00,
-    rating: 4,
-    description: "Sabor intenso y jugoso con infiltración perfecta. Ideal para los paladares más exigentes.",
-    image: "https://images.unsplash.com/photo-1544073627-467f24799c90?auto=format&fit=crop&q=80&w=400"
-  },
-  {
-    id: 3,
-    name: "Lomo Embuchado de Bellota",
-    category: "Embutidos Nobles",
-    price: 45.50,
-    rating: 5,
-    description: "Adobado con pimentón de la Vera y curado lentamente en tripa natural.",
-    image: "https://images.unsplash.com/photo-1626074353765-517a681e40be?auto=format&fit=crop&q=80&w=400"
-  }
-];
-
-export default function App() {
-  const [cart, setCart] = useState([]);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [stylesLoaded, setStylesLoaded] = useState(false);
-
-  // Inyección del CDN de Tailwind a prueba de Vercel
-  useEffect(() => {
-    // Si ya existe el script de Tailwind, no hacemos nada
-    if (document.getElementById('tailwind-cdn')) {
-      setStylesLoaded(true);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = 'tailwind-cdn';
-    script.src = 'https://cdn.tailwindcss.com';
-    script.onload = () => {
-      // Configuramos Tailwind una vez cargado
-      if (window.tailwind) {
-        window.tailwind.config = {
-          theme: {
-            extend: {},
-          },
-        };
-      }
-      setStylesLoaded(true);
-    };
-    script.onerror = () => {
-      console.error("Error al cargar Tailwind CSS.");
-      // Incluso si falla, mostramos la app para evitar pantalla en blanco eterna
-      setStylesLoaded(true); 
-    };
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA DE CONTROL OPERATIVO - EL PATRÓN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/1828/1828919.png">
     
-    document.head.appendChild(script);
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --primary-glow: rgba(0, 242, 255, 0.5);
+            --bg-dark: #050a14;
+            --card-bg: rgba(10, 20, 35, 0.95);
+            --text: #ffffff;
+            --text-muted: #94a3b8;
+            --accent-green: #22c55e;
+            --accent-purple: #a855f7;
+            --accent-orange: #f97316;
+            --accent-teams: #464eb8;
+            --glass-border: rgba(0, 242, 255, 0.3);
+            --grid-color: rgba(0, 242, 255, 0.05);
+            /* Tipografías */
+            --font-title: 'Syncopate', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
 
-    return () => {
-      // Limpieza al desmontar (opcional pero buena práctica)
-      const existingScript = document.getElementById('tailwind-cdn');
-      if (existingScript) {
-        document.head.removeChild(existingScript);
-      }
-    };
-  }, []);
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-  useEffect(() => {
-    if (!stylesLoaded) return;
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [stylesLoaded]);
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: var(--font-body);
+            background: 
+                linear-gradient(rgba(5, 10, 20, 0.8), rgba(5, 10, 20, 0.9)),
+                url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            font-size: 20px;
+        }
 
-  const addToCart = (product) => {
-    setCart(prev => [...prev, { ...product, cartId: Date.now() + Math.random() }]);
-    setIsCartOpen(true);
-  };
+        /* Efecto HUD Grid */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 1;
+        }
 
-  const removeFromCart = (cartId) => {
-    setCart(prev => prev.filter(item => item.cartId !== cartId));
-  };
+        /* --- Header --- */
+        header {
+            background: rgba(2, 6, 12, 0.98);
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            border-bottom: 4px solid var(--primary);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            position: sticky;
+            top: 0;
+            z-index: 2000;
+        }
 
-  const cartTotal = cart.reduce((acc, item) => acc + item.price, 0);
+        .logo-area h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-family: var(--font-title);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--primary);
+            text-shadow: 0 0 15px var(--primary-glow);
+        }
 
-  // Mostrar un indicador de carga mientras Tailwind se inyecta
-  if (!stylesLoaded) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#fcfaf7', color: '#2d241e', fontFamily: 'serif' }}>
-        <p>Cargando estilos...</p>
-      </div>
-    );
-  }
+        /* --- Layout --- */
+        .main-content {
+            flex: 1;
+            padding: 3rem 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            z-index: 2;
+        }
 
-  return (
-    <div className="min-h-screen bg-[#fcfaf7] text-[#2d241e] font-serif selection:bg-amber-200 scroll-smooth" style={{visibility: stylesLoaded ? 'visible' : 'hidden'}}>
-      
-      {/* Navegación Principal */}
-      <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white shadow-xl py-2 text-[#2d241e]' : 'bg-transparent py-5 text-white'}`}>
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
-            <ShoppingBag className={scrolled ? 'text-amber-700' : 'text-amber-400'} size={28} />
-            <span className="text-xl md:text-2xl font-black tracking-widest uppercase italic">La Dehesa</span>
-          </div>
-          
-          <div className="hidden md:flex gap-10 font-sans text-[10px] font-bold uppercase tracking-[0.2em]">
-            <a href="#" className="hover:text-amber-600 transition-colors">Inicio</a>
-            <a href="#productos" className="hover:text-amber-600 transition-colors">Productos</a>
-            <a href="#historia" className="hover:text-amber-600 transition-colors">Historia</a>
-            <a href="#contacto" className="hover:text-amber-600 transition-colors">Contacto</a>
-          </div>
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2.5rem;
+        }
 
-          <div className="flex items-center gap-5">
-            <button onClick={() => setIsCartOpen(true)} className="relative p-2 transition-transform hover:scale-110 active:scale-95">
-              <ShoppingCart className={scrolled ? 'text-[#2d241e]' : 'text-white'} />
-              {cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-pulse font-sans">
-                  {cart.length}
-                </span>
-              )}
-            </button>
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden">
-              {isMenuOpen ? <X size={24} className={scrolled ? 'text-black' : 'text-white'} /> : <Menu size={24} className={scrolled ? 'text-black' : 'text-white'} />}
-            </button>
-          </div>
+        /* --- Cards --- */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(25px);
+            padding: 2.5rem;
+            border: 2px solid var(--glass-border);
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.15);
+        }
+
+        .card h2 {
+            margin: 0 0 2rem 0;
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* --- Botones --- */
+        .button-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.4rem 1.6rem;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+        }
+
+        button:hover {
+            background: rgba(0, 242, 255, 0.2);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-green { border-right: 6px solid var(--accent-green); }
+        .btn-purple { border-right: 6px solid var(--accent-purple); }
+        .btn-orange { border-right: 6px solid var(--accent-orange); }
+        .btn-teams { border-right: 6px solid var(--accent-teams); color: #cbd5e1; }
+        .btn-teams:hover { color: white; background: rgba(70, 78, 184, 0.3); border-color: #6069d1; }
+        
+        .btn-primary-solid {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            justify-content: center;
+        }
+
+        /* --- SOLUCIÓN DESPLEGABLE: Z-INDEX GLOBAL --- */
+        .dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .dropdown-content {
+            display: none;
+            background: #08101d;
+            border: 3px solid var(--primary);
+            position: absolute;
+            width: 100%;
+            top: 100%;
+            left: 0;
+            z-index: 9999; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9);
+            margin-top: 5px;
+        }
+
+        .dropdown-content a {
+            display: block;
+            padding: 1.4rem;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.1);
+            transition: background 0.2s;
+        }
+
+        .dropdown-content a:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        /* --- Footer / Time --- */
+        .time-display {
+            text-align: right;
+            font-family: var(--font-mono);
+        }
+
+        #clock {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+        }
+
+        /* Notificaciones HUD */
+        #toast {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background: #000;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 15px 30px;
+            font-family: var(--font-mono);
+            z-index: 10000;
+            transform: translateX(200%);
+            transition: 0.4s ease;
+        }
+        #toast.show { transform: translateX(0); }
+
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+            header { padding: 1rem; }
+            .logo-area h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo-area">
+            <h1>SISTEMA OPERATIVO AP</h1>
         </div>
-      </nav>
-
-      {/* Menú Móvil */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 z-[60] bg-white flex flex-col items-center justify-center gap-8 md:hidden text-[#2d241e] animate-in fade-in zoom-in duration-300">
-          <button onClick={() => setIsMenuOpen(false)} className="absolute top-6 right-6 p-2"><X size={32} /></button>
-          <a href="#" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Inicio</a>
-          <a href="#productos" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Productos</a>
-          <a href="#historia" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Historia</a>
-          <a href="#contacto" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold uppercase tracking-widest">Contacto</a>
+        <div class="time-display">
+            <span id="clock">00:00:00</span>
+            <span id="date">--/--/----</span>
         </div>
-      )}
+    </header>
 
-      {/* Hero Section */}
-      <header className="relative h-[90vh] md:h-screen flex items-center justify-center overflow-hidden bg-black">
-        <div className="absolute inset-0 opacity-60">
-          <img 
-            src="https://images.unsplash.com/photo-1599401083957-25916035f29d?auto=format&fit=crop&q=80&w=1920" 
-            alt="Bodega de jamones" 
-            className="w-full h-full object-cover scale-105 animate-pulse-slow" 
-          />
-        </div>
-        <div className="relative z-10 text-center px-6 max-w-5xl">
-          <div className="inline-block px-5 py-2 border border-amber-400 text-amber-400 font-sans text-[10px] md:text-xs uppercase tracking-[0.4em] mb-8 bg-black/30 backdrop-blur-sm italic">Desde 1924</div>
-          <h1 className="text-5xl md:text-8xl lg:text-9xl text-white font-bold mb-8 leading-none">
-            Excelencia <span className="italic text-amber-400 block md:inline font-light">Ibérico</span>
-          </h1>
-          <p className="text-base md:text-2xl text-slate-200 mb-12 font-sans max-w-2xl mx-auto leading-relaxed">
-            Piezas maestras seleccionadas una a una en las dehesas de la Sierra de Huelva.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
-            <a href="#productos" className="w-full sm:w-auto bg-amber-600 text-white px-10 py-4 md:px-12 md:py-5 rounded-full font-sans font-bold hover:bg-amber-700 transition-all shadow-xl text-center">Explorar Colección</a>
-            <a href="#historia" className="w-full sm:w-auto border border-white/50 text-white px-10 py-4 md:px-12 md:py-5 rounded-full font-sans font-bold hover:bg-white hover:text-black transition-all text-center">Nuestra Historia</a>
-          </div>
-        </div>
-      </header>
-
-      {/* SECCIÓN: HISTORIA */}
-      <section id="historia" className="py-20 md:py-32 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <div className="relative order-2 lg:order-1">
-              <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl transform lg:-rotate-3 hover:rotate-0 transition-transform duration-700">
-                <img src="https://images.unsplash.com/photo-1533630660534-d67b5791220a?auto=format&fit=crop&q=80&w=800" alt="Maestro cortador" className="w-full h-[400px] md:h-[600px] object-cover" />
-              </div>
-              <div className="absolute -bottom-10 -right-10 w-48 md:w-64 h-48 md:h-64 bg-amber-100 rounded-full -z-0 opacity-50 blur-3xl"></div>
-            </div>
+    <div class="main-content">
+        <div class="container">
             
-            <div className="space-y-8 order-1 lg:order-2">
-              <div className="inline-flex items-center gap-2 text-amber-700 font-sans font-bold uppercase tracking-widest text-[10px] md:text-xs">
-                <div className="w-8 h-px bg-amber-700"></div> El Legado de la Tierra
-              </div>
-              <h2 className="text-4xl md:text-6xl font-bold leading-tight">Un siglo de <span className="italic font-light">paciencia</span> y dedicación</h2>
-              <p className="text-slate-600 font-sans text-base md:text-lg leading-relaxed">
-                Nuestra historia comienza en las dehesas de Jabugo, donde mi abuelo seleccionaba las mejores piaras de cerdos 100% ibéricos. Lo que empezó como una pequeña bodega familiar se ha convertido en un referente mundial de la gastronomía.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-4">
-                <div className="flex gap-4 items-start">
-                  <div className="bg-amber-50 p-3 rounded-lg text-amber-700"><Calendar size={20}/></div>
-                  <div>
-                    <span className="font-bold block text-amber-900">1924</span>
-                    <p className="text-sm font-sans text-slate-500">Fundación de la bodega artesanal.</p>
-                  </div>
+            <!-- LOGÍSTICA -->
+            <div class="card">
+                <h2>📦 LOGÍSTICA</h2>
+                <div class="button-grid">
+                    <button onclick="abrirLinks3()">Consumibles PAQ ➡</button>
+                    <button onclick="abrirLinks4()">Descarga e Inventario PRC ➡</button>
+                    <button onclick="abrirLinks()">Recordatorios Niponas ➡</button>
                 </div>
-                <div className="flex gap-4 items-start">
-                  <div className="bg-amber-50 p-3 rounded-lg text-amber-700"><Users size={20}/></div>
-                  <div>
-                    <span className="font-bold block text-amber-900">3ª Generación</span>
-                    <p className="text-sm font-sans text-slate-500">Curación natural inalterada.</p>
-                  </div>
-                </div>
-              </div>
-              <p className="text-slate-600 font-sans text-base md:text-lg leading-relaxed italic border-l-4 border-amber-600 pl-6 bg-slate-50 py-4 rounded-r-lg">
-                "El secreto no está en la prisa, sino en el tiempo que la carne pasa escuchando el silencio de la bodega."
-              </p>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Valores de Marca */}
-      <section className="py-20 md:py-24 bg-[#fcfaf7]">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16 text-center">
-          {[
-            { icon: <Award size={40} />, title: "Origen Jabugo", desc: "Localización privilegiada con microclima único para la curación natural.", rotate: "rotate-6" },
-            { icon: <ShieldCheck size={40} />, title: "100% Bellota", desc: "Certificación de brida negra, garantizando la pureza máxima de la raza.", rotate: "rotate-0" },
-            { icon: <MapPin size={40} />, title: "Envío Seguro", desc: "Logística especializada con control de temperatura para preservar el aroma.", rotate: "-rotate-6" }
-          ].map((val, idx) => (
-            <div key={idx} className="flex flex-col items-center group">
-              <div className={`w-20 h-20 bg-white shadow-md rounded-3xl flex items-center justify-center text-amber-700 mb-8 transform ${val.rotate} group-hover:rotate-0 transition-transform duration-500`}>
-                {val.icon}
-              </div>
-              <h3 className="text-xl md:text-2xl font-bold mb-4 uppercase tracking-wider">{val.title}</h3>
-              <p className="text-slate-500 font-sans text-sm md:text-base leading-relaxed px-4">{val.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Sección de Productos */}
-      <section id="productos" className="py-20 md:py-32 px-6 max-w-7xl mx-auto">
-        <div className="text-center md:text-left mb-16 md:mb-20">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6">Selección de la Casa</h2>
-          <div className="w-20 h-1.5 bg-amber-600 mb-6 mx-auto md:mx-0"></div>
-          <p className="text-slate-500 font-sans max-w-xl">Cada pieza es monitorizada diariamente por nuestros maestros bodegueros hasta alcanzar el punto óptimo de consumo.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
-          {products.map((product) => (
-            <div key={product.id} className="group bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 flex flex-col">
-              <div className="relative h-64 md:h-80 overflow-hidden">
-                <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                <div className="absolute top-6 left-6 bg-white/95 backdrop-blur px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">{product.category}</div>
-              </div>
-              <div className="p-8 md:p-10 flex-grow flex flex-col">
-                <div className="flex gap-1 mb-4 text-amber-500">
-                  {[...Array(product.rating)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold mb-3 leading-tight">{product.name}</h3>
-                <p className="text-slate-500 font-sans text-sm mb-8 flex-grow leading-relaxed">{product.description}</p>
-                <div className="flex items-center justify-between mt-auto">
-                  <span className="text-2xl md:text-3xl font-bold text-amber-950 font-sans">{product.price.toFixed(2)}€</span>
-                  <button 
-                    onClick={() => addToCart(product)} 
-                    className="p-4 md:p-5 bg-[#2d241e] text-white rounded-2xl hover:bg-amber-700 transition-all shadow-lg active:scale-95 group-hover:translate-y-[-4px]"
-                  >
-                    <Plus size={24} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer id="contacto" className="bg-[#1a1512] text-white pt-20 pb-12">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 mb-20">
-          <div className="col-span-1">
-            <div className="flex items-center gap-2 mb-8">
-              <ShoppingBag className="text-amber-400" size={32} />
-              <span className="text-2xl font-black italic uppercase tracking-tighter">La Dehesa</span>
-            </div>
-            <p className="text-slate-400 font-sans text-sm leading-relaxed">
-              Artesanos del jamón ibérico. Comprometidos con la calidad suprema y la cría sostenible en libertad desde hace un siglo.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-[10px]">Navegación</h4>
-            <ul className="space-y-4 font-sans text-slate-400 text-sm">
-              <li><a href="#" className="hover:text-white transition-colors">Inicio</a></li>
-              <li><a href="#productos" className="hover:text-white transition-colors">Productos</a></li>
-              <li><a href="#historia" className="hover:text-white transition-colors">Nuestra Historia</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-[10px]">Contacto</h4>
-            <ul className="space-y-4 font-sans text-slate-400 text-sm">
-              <li className="flex items-center gap-3"><Phone size={14} className="text-amber-600" /> +34 900 123 456</li>
-              <li className="flex items-center gap-3"><MapPin size={14} className="text-amber-600" /> Jabugo, Huelva</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold mb-8 uppercase tracking-widest text-amber-400 text-[10px]">Síguenos</h4>
-            <div className="flex gap-4">
-              <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-amber-600 transition-all"><Instagram size={18} /></button>
-              <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-amber-600 transition-all"><Facebook size={18} /></button>
-            </div>
-          </div>
-        </div>
-        <div className="border-t border-white/5 text-center pt-12 text-slate-600 font-sans text-[10px] uppercase tracking-widest">
-          © 2026 La Dehesa Ibérica • Jabugo • Selección Gourmet de Lujo
-        </div>
-      </footer>
-
-      {/* Carrito de Compra lateral */}
-      {isCartOpen && (
-        <div className="fixed inset-0 z-[100] overflow-hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsCartOpen(false)} />
-          <div className="absolute inset-y-0 right-0 max-w-full flex">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col transform transition-transform animate-in slide-in-from-right duration-500">
-              <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center">
-                <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3"><ShoppingCart size={24} className="text-amber-700" /> Su Cesta</h2>
-                <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={28} /></button>
-              </div>
-              <div className="flex-grow overflow-y-auto p-6 md:p-8 space-y-6 font-sans">
-                {cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center opacity-50">
-                    <ShoppingBag size={64} className="mb-4" />
-                    <p className="italic">Su selección está vacía</p>
-                  </div>
-                ) : (
-                  cart.map((item) => (
-                    <div key={item.cartId} className="flex gap-4 items-center border-b border-slate-50 pb-6 group">
-                      <div className="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-xl overflow-hidden shadow-inner">
-                        <img src={item.image} className="w-full h-full object-cover" alt={item.name} />
-                      </div>
-                      <div className="flex-grow">
-                        <h4 className="font-bold text-xs md:text-sm mb-1 leading-tight">{item.name}</h4>
-                        <p className="text-amber-900 font-bold text-base md:text-lg font-serif">{item.price.toFixed(2)}€</p>
-                      </div>
-                      <button onClick={() => removeFromCart(item.cartId)} className="p-2 text-slate-300 hover:text-red-500 transition-all">
-                        <Trash2 size={18} />
-                      </button>
+            <!-- PLANIFICACIÓN -->
+            <div class="card" style="z-index: 1000;">
+                <h2>📅 PLANIFICACIÓN</h2>
+                <div class="button-grid">
+                    <button onclick="abrirLinks2()">Turnos / Vacaciones 📅</button>
+                    <button class="btn-teams" onclick="abrirTeams()">MS TEAMS DESKTOP 👥</button>
+                    <div class="dropdown">
+                        <button onclick="toggleMenu()" class="btn-primary-solid">⏱️ HORAS EXTRAS ▼</button>
+                        <div id="menu5" class="dropdown-content">
+                            <a href="#" onclick="abrirLinks5_1()">ALBERTO</a>
+                            <a href="#" onclick="abrirLinks5_2()">LUIS</a>
+                            <a href="#" onclick="abrirLinks5_3()">IVAN</a>
+                            <a href="#" onclick="abrirLinks5_4()">PACO</a>
+                            <a href="#" onclick="abrirLinks5_5()">NATALIA</a>
+                            <a href="#" onclick="abrirLinks5_6()">ENZO</a>
+                        </div>
                     </div>
-                  ))
-                )}
-              </div>
-              {cart.length > 0 && (
-                <div className="p-6 md:p-8 border-t border-slate-100 bg-slate-50/80 backdrop-blur">
-                  <div className="flex justify-between items-end mb-8">
-                    <span className="font-sans text-slate-400 uppercase tracking-widest text-[10px] block mb-1">Total (IVA incl.)</span>
-                    <span className="text-3xl md:text-4xl font-bold text-amber-950 font-serif">{cartTotal.toFixed(2)}€</span>
-                  </div>
-                  <button className="w-full bg-[#2d241e] text-white py-4 md:py-5 rounded-2xl font-sans font-bold hover:bg-amber-900 transition-all shadow-xl active:scale-95">Finalizar Pedido</button>
                 </div>
-              )}
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* Estilos Globales Extra */}
-      <style>{`
-        @keyframes pulse-slow {
-          0%, 100% { transform: scale(1.05); }
-          50% { transform: scale(1.1); }
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 15s ease-in-out infinite;
-        }
-        html {
-          scroll-behavior: smooth;
-        }
-      `}</style>
+            <!-- SOLICITUDES -->
+            <div class="card">
+                <h2>📝 SOLICITUDES</h2>
+                <div class="button-grid">
+                    <button class="btn-green" onclick="abrirComedor()">COMEDOR 🍽️</button>
+                    <button class="btn-purple" onclick="abrirRRHH()">SOLICITUDES RRHH 📋</button>
+                    <button class="btn-orange" onclick="abrirMySpace()">MI ESPACIO INET 🌐</button>
+                </div>
+            </div>
+
+            <!-- AUWA -->
+            <div class="card">
+                <h2>🏭 SISTEMA AUWA</h2>
+                <div class="button-grid">
+                    <button onclick="abrirPRC()">TERMINALES PRC 🖥️</button>
+                    <button onclick="abrirPAQ()">TERMINALES PAQ 📦</button>
+                </div>
+            </div>
+
+        </div>
     </div>
-  );
-}
+
+    <div id="toast">> ACCESO_CONFIRMADO</div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('es-ES', { hour12: false });
+            document.getElementById('date').textContent = now.toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = "> " + msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Función específica para abrir en VENTANA nueva (Pop-up)
+        function abrirVentana(url, nombre) {
+            const caracteristicas = "width=1200,height=800,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes";
+            const win = window.open(url, nombre, caracteristicas);
+            if (win) showToast("VENTANA INICIADA: " + nombre);
+            else showToast("POP-UP BLOQUEADO");
+        }
+
+        function abrir(url) {
+            const win = window.open(url, '_blank');
+            if (win) showToast("EJECUTANDO...");
+            else showToast("BLOQUEADO POR NAVEGADOR");
+        }
+
+        function abrirTeams() {
+            showToast("ABRIENDO TEAMS...");
+            window.location.href = "msteams:/";
+        }
+
+        // Enlaces (IDs y URLs originales)
+        function abrirComedor() { abrir("https://sscc.central.inditex.grp/gesconsw/pedidosweb/index.html#/eat/"); }
+        function abrirRRHH() { abrir("https://sscc.central.inditex.grp/inetweb/web/es/tordera/solicitudesRRHH_MDLog"); }
+        function abrirMySpace() { abrir("https://auth.inditex.com/openam/XUI/?realm=/itxid&goto=https://auth.inditex.com:443/openam/oauth2/realms/root/realms/itxid/authorize?response_type%3Dcode%26client_id%3Doauthmyspacepro%26state%3DM91pPfDwGb6JGXOdDz0KLQ%26code_challenge%3D64eyp9Sx6rHT6yBYmc4d-Co1i6w2h3foJ0ZqXWp97LM%26code_challenge_method%3DS256%26redirect_uri%3Dhttps://sscc.central.inditex.grp/msshell/api/auth/login%26scope%3Dopenid%2520profile%2520intranet%26ForceAuth%3Dtrue%26nonce%3Dos29Sid9fivkQ1ikxxnOuQ%26prompt%3D#login/"); }
+        
+        function abrirLinks() { 
+            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7Bdf0c599e-e4f6-4a19-8dd0-5f41a708bb1e%7D&web=1");
+            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7Ba641cc19-c28e-4149-b7a0-4459c1f9d3d9%7D&web=1");
+        }
+
+        function abrirLinks2() {
+            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7Bdf0c599e-e4f6-4a19-8dd0-5f41a708bb1e%7D&web=1");
+            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B72eeff7f-3903-4ea4-a479-0a4b33bd71d0%7D&web=1");
+        }
+
+        function abrirLinks3() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B45c79c82-bb05-4707-87dd-7c5b1beebc19%7D&web=1"); }
+        
+        function abrirLinks4() {
+            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B48eeaea3-c3aa-4a3f-8201-f92b0939a6f4%7D&web=1");
+            abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/APS/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7Beb4dbc94-12b8-4c91-b72e-b96a6a408dd2%7D&web=1");
+        }
+
+        function abrirLinks5_1() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/AUTONOMOSPROFESIONALES/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7Bfcccb126-f75d-40b6-a482-690a4f592c55%7D&web=1"); }
+        function abrirLinks5_2() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/AUTONOMOSPROFESIONALES/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B6eb0a5ab-ae99-43c4-9031-f9810fc40a4e%7D&web=1"); }
+        function abrirLinks5_3() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/AUTONOMOSPROFESIONALES/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B8d0421c8-1608-46f6-807c-8a23af7b5002%7D&web=1"); }
+        function abrirLinks5_4() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/AUTONOMOSPROFESIONALES/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B7ba69976-1a5b-4a77-b936-d3901f979f46%7D&web=1"); }
+        function abrirLinks5_5() { abrir("https://login.microsoftonline.com/"); }
+        function abrirLinks5_6() { abrir("https://grupoinditex.sharepoint.com/:x:/r/sites/AUTONOMOSPROFESIONALES/_layouts/15/Doc2.aspx?action=edit&sourcedoc=%7B3425aefc-5a64-4557-8ca6-1262f5572b90%7D&web=1"); }
+
+        // AUWA: Apertura en VENTANAS independientes
+        function abrirPRC() {
+            abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PRC_COTA_2", "PRC_COTA_2");
+            setTimeout(() => {
+                abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PRC_COTA_0_1", "PRC_COTA_0_1");
+            }, 300);
+        }
+
+        function abrirPAQ() {
+            abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PAQ_COTA_0", "PAQ_COTA_0");
+            setTimeout(() => abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PAQ_COTA_1", "PAQ_COTA_1"), 300);
+            setTimeout(() => abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PAQ_COTA_2", "PAQ_COTA_2"), 600);
+            setTimeout(() => abrirVentana("https://auwa.cloud.inditex.com/warehouse/TOCDESMD/customs/PAQ_COTA_3", "PAQ_COTA_3"), 900);
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById("menu5");
+            const isOpen = menu.style.display === "block";
+            menu.style.display = isOpen ? "none" : "block";
+        }
+
+        window.onclick = function(e) {
+            if (!e.target.closest('.dropdown')) {
+                document.getElementById("menu5").style.display = "none";
+            }
+        }
+    </script>
+</body>
