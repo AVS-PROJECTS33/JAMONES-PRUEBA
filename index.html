@@ -183,6 +183,7 @@
 <!-- PANTALLA DE LOGIN -->
 <div id="login-screen" style="display: none;">
     <div class="login-card">
+        <div style="color: var(--danger); font-size: 12px; font-weight: bold; margin-bottom: 16px; background: rgba(239, 68, 68, 0.1); padding: 8px; border-radius: 6px;">NO FUNCIONA CON EL WIFI DE MASSIMODUTTI</div>
         <h2 style="margin-top:0">Control de Horas</h2>
         <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Inicia sesión para guardar tus registros en la nube.</p>
         
@@ -719,7 +720,8 @@
             if (!meses[mKey]) meses[mKey] = { label: mesNombre, items: [] };
             
             let venceStr = "";
-            if (item.tipoOriginal === "extra") {
+            // Condición actualizada para verificar que las horas originales sean positivas (mayores a 0)
+            if (item.tipoOriginal === "extra" && item.horasOriginales > 0) {
                 let c = new Date(f.getFullYear(), f.getMonth() + 4, 1);
                 venceStr = c.toLocaleString('es-ES', { month: 'short', year: '2-digit' });
             }
