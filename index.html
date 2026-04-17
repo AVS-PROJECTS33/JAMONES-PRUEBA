@@ -198,7 +198,9 @@
             <span id="user-name-display" class="user-badge">Cargando usuario...</span>
         </div>
         <div class="header-btns">
-            <button class="btn-icon" onclick="mostrarInfo()" style="background: var(--info); color: white; border: none;" title="Ayuda">ℹ️</button>
+            <button class="btn-icon" onclick="mostrarInfo()" style="background: var(--info); color: white; border: none; display: flex; align-items: center; justify-content: center; padding: 6px 10px;" title="Ayuda">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            </button>
             <button class="btn-icon" onclick="toggleModo()">🌓</button>
             <button class="btn-icon" onclick="logout()" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">Salir</button>
         </div>
