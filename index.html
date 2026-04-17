@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -241,6 +242,7 @@
                 <label>Tipo de hora</label>
                 <select id="tipo">
                     <option value="extra">➕ Extra (x1.75)</option>
+                    <option value="compensacion">⚖️ Compensación (x1.0)</option>
                     <option value="negativa">➖ Negativa (x1.0)</option>
                     <option value="exceso">⚠️ Exceso (x1.0)</option>
                     <option value="festiva">🎉 Festiva (x2.25)</option>
@@ -708,16 +710,16 @@
         
         const filter = document.getElementById("buscador").value.toLowerCase();
         
-        // 1. Calculamos las horas consumidas (cualquier registro con valor negativo)
+        // 1. Calculamos las horas consumidas (cualquier registro con valor negativo, excepto negativa y exceso)
         let horasConsumidas = 0;
         registrosLocales.forEach(item => {
-            if (item.horasOriginales < 0) {
+            if (item.horasOriginales < 0 && item.tipoOriginal !== "negativa" && item.tipoOriginal !== "exceso") {
                 horasConsumidas += Math.abs(item.horasCalculadas);
             }
         });
 
         // 2. Obtenemos las horas extra positivas y las ordenamos desde la más antigua a la más nueva
-        let extraPositivas = registrosLocales.filter(r => r.tipoOriginal === "extra" && r.horasOriginales > 0)
+        let extraPositivas = registrosLocales.filter(r => (r.tipoOriginal === "extra" || r.tipoOriginal === "compensacion") && r.horasOriginales > 0)
             .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
         // 3. Cruzamos las horas consumidas con las extras más antiguas
@@ -754,7 +756,7 @@
             let venceStr = "";
             let tachado = false;
             
-            if (item.tipoOriginal === "extra" && item.horasOriginales > 0) {
+            if ((item.tipoOriginal === "extra" || item.tipoOriginal === "compensacion") && item.horasOriginales > 0) {
                 let c = new Date(f.getFullYear(), f.getMonth() + 4, 1);
                 venceStr = c.toLocaleString('es-ES', { month: 'short', year: '2-digit' });
                 
@@ -776,7 +778,7 @@
             const m = meses[k];
             cont.innerHTML += `<div class="mes-titulo"><span style="text-transform: capitalize;">${m.label} ${k.split('-')[0]}</span></div>`;
             m.items.forEach(i => {
-                const colors = { extra: 'verde', festiva: 'verde', nocturna: 'verde', negativa: 'rojo', exceso: 'amarillo', inet: 'verde' };
+                const colors = { extra: 'verde', compensacion: 'verde', festiva: 'verde', nocturna: 'verde', negativa: 'rojo', exceso: 'amarillo', inet: 'verde' };
                 
                 let badgeVence = '';
                 if (i.venceStr) {
@@ -966,3 +968,6 @@
 </script>
 </body>
 </html>
+
+
+```
