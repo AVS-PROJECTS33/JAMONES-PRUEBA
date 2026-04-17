@@ -284,9 +284,12 @@
         </div>
         
         <div id="seccion-historial" style="display: none; margin-top: 16px;">
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px;">
+                <button class="btn-icon" style="background: var(--info); color: white; border: none;" onclick="document.getElementById('importFile').click()">📥 Importar datos</button>
+                <button class="btn-icon" style="background: var(--warning); color: white; border: none;" onclick="exportarJSON()">📤 Exportar datos</button>
                 <button class="btn-icon" style="background: var(--success); color: white; border: none;" onclick="exportarPDF()">📄 PDF</button>
             </div>
+            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarJSON(event)">
             <input type="text" id="buscador" placeholder="Buscar por nota o fecha..." oninput="filtrarLocal()">
             <div id="lista-cargando" style="text-align:center; padding: 20px; color: var(--text-muted);">Sincronizando datos...</div>
             <div id="lista"></div>
@@ -722,6 +725,70 @@
             margin: { left: 14, right: 14 }
         });
         doc.save(`Horas_MD_${new Date().toLocaleDateString()}.pdf`);
+    };
+
+    window.exportarJSON = () => {
+        if (registrosLocales.length === 0) {
+            showModal("No hay registros para exportar.");
+            return;
+        }
+        // Excluimos las ID locales para exportar el archivo limpio
+        const exportData = registrosLocales.map(({ fFmt, id, ...rest }) => rest);
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Horas_MD_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    window.importarJSON = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (!Array.isArray(data)) throw new Error("Formato de archivo inválido.");
+                
+                document.getElementById('importFile').value = ''; // Limpiamos input
+
+                showModal(`¿Deseas importar ${data.length} registros a la nube?`, true, async () => {
+                    if (!currentUser) return;
+                    
+                    const originalText = document.getElementById("lista-cargando").innerText;
+                    document.getElementById("lista-cargando").style.display = "block";
+                    document.getElementById("lista-cargando").innerText = "Importando datos, por favor espera...";
+                    
+                    try {
+                        const ref = collection(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros');
+                        for (const item of data) {
+                            const { id, fFmt, ...registroLimpio } = item; 
+                            if (registroLimpio.fecha && registroLimpio.tipoOriginal) {
+                                await addDoc(ref, registroLimpio);
+                            }
+                        }
+                        showToast(`Registros importados correctamente`);
+                    } catch (error) {
+                        console.error(error);
+                        showModal("Error al importar los registros.");
+                    } finally {
+                        document.getElementById("lista-cargando").innerText = originalText;
+                        document.getElementById("lista-cargando").style.display = "none";
+                    }
+                });
+            } catch (error) {
+                console.error(error);
+                showModal("Error al leer el archivo JSON. Verifica que sea válido.");
+                document.getElementById('importFile').value = '';
+            }
+        };
+        reader.readAsText(file);
     };
 
     document.getElementById('fecha').valueAsDate = new Date();
