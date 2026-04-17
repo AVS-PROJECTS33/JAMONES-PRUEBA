@@ -164,10 +164,12 @@
         .cal-rojo { background: #ffe4e6; color: #be123c; font-weight: bold; border-color: #be123c;}
         .cal-amarillo { background: #fef3c7; color: #b45309; font-weight: bold; border-color: #b45309;}
         .cal-morado { background: #f3e8ff; color: #7e22ce; font-weight: bold; border-color: #7e22ce;}
+        .cal-finde { color: #3b82f6; font-weight: bold; }
         .dark-mode .cal-verde { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #34d399;}
         .dark-mode .cal-rojo { background: rgba(225, 29, 72, 0.2); color: #fb7185; border-color: #fb7185;}
         .dark-mode .cal-amarillo { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: #fbbf24;}
         .dark-mode .cal-morado { background: rgba(126, 34, 206, 0.2); color: #c084fc; border-color: #c084fc;}
+        .dark-mode .cal-finde { color: #60a5fa; }
 
         /* Modales */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center; }
@@ -685,6 +687,11 @@
                 else if (tipo === 'exceso') colorClass = "cal-amarillo";
                 else colorClass = "cal-verde"; 
                 hasAction = true;
+            }
+            
+            const dayOfWeek = new Date(year, month, d).getDay();
+            if (!hasAction && (dayOfWeek === 0 || dayOfWeek === 6)) {
+                colorClass = "cal-finde";
             }
             
             cont.innerHTML += `<div class="calendar-day ${colorClass}" ${hasAction ? `onclick="mostrarDetalleDia('${dateStr}')"` : ''}>${d}</div>`;
