@@ -152,6 +152,20 @@
             color: white;
         }
 
+        /* Calendario */
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 700; font-size: 14px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+        .calendar-day-name { font-size: 11px; color: var(--text-muted); font-weight: bold; margin-bottom: 8px;}
+        .calendar-day { padding: 8px 0; border-radius: 6px; cursor: pointer; font-size: 13px; border: 1px solid var(--border-color); background: var(--bg-body); transition: all 0.2s;}
+        .calendar-day:hover { border-color: var(--primary); }
+        .calendar-day.empty { visibility: hidden; border: none; background: transparent; }
+        .cal-verde { background: #d1fae5; color: #047857; font-weight: bold; border-color: #047857;}
+        .cal-rojo { background: #ffe4e6; color: #be123c; font-weight: bold; border-color: #be123c;}
+        .cal-amarillo { background: #fef3c7; color: #b45309; font-weight: bold; border-color: #b45309;}
+        .dark-mode .cal-verde { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #34d399;}
+        .dark-mode .cal-rojo { background: rgba(225, 29, 72, 0.2); color: #fb7185; border-color: #fb7185;}
+        .dark-mode .cal-amarillo { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: #fbbf24;}
+
         /* Modales */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center; }
         .modal-content { background: var(--bg-card); padding: 24px; border-radius: 16px; text-align: center; max-width: 340px; width: 90%; border: 1px solid var(--border-color); }
@@ -205,41 +219,78 @@
     </div>
 
     <div class="card">
-        <h3 style="color: var(--text-main); margin-bottom: 16px; font-size: 1.1rem; text-transform: none;">Nuevo Registro</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleFormulario()">
+            <h3 style="color: var(--text-main); margin: 0; font-size: 1.1rem; text-transform: none;">Nuevo Registro</h3>
+            <span id="icono-formulario" style="font-size: 1.2rem; user-select: none;">➕</span>
+        </div>
         
-        <div class="form-group">
-            <label>Tipo de hora</label>
-            <select id="tipo">
-                <option value="extra">➕ Extra (x1.75)</option>
-                <option value="negativa">➖ Negativa (x1.0)</option>
-                <option value="festiva">🎉 Festiva (x2.25)</option>
-                <option value="nocturna">🌙 Nocturna (x2.0)</option>
-                <option value="exceso">⚠️ Exceso (x1.0)</option>
-            </select>
+        <div id="seccion-formulario" style="display: none; margin-top: 16px;">
+            <div class="form-group">
+                <label>Tipo de hora</label>
+                <select id="tipo">
+                    <option value="extra">➕ Extra (x1.75)</option>
+                    <option value="negativa">➖ Negativa (x1.0)</option>
+                    <option value="festiva">🎉 Festiva (x2.25)</option>
+                    <option value="nocturna">🌙 Nocturna (x2.0)</option>
+                    <option value="exceso">⚠️ Exceso (x1.0)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Horas</label>
+                <input type="number" id="horas" placeholder="Ej: 2.5" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="fecha">
+            </div>
+            <div class="form-group">
+                <label>Observaciones</label>
+                <input type="text" id="desc" placeholder="Nota rápida...">
+            </div>
+            <button class="btn-primary" onclick="guardar()">GUARDAR</button>
         </div>
-        <div class="form-group">
-            <label>Horas</label>
-            <input type="number" id="horas" placeholder="Ej: 2.5" step="0.01">
+    </div>
+
+    <!-- SECCIÓN CALENDARIO -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleCalendario()">
+            <h3 style="color: var(--text-main); margin: 0; font-size: 1.1rem; text-transform: none;">Calendario</h3>
+            <span id="icono-calendario" style="font-size: 1.2rem; user-select: none;">➕</span>
         </div>
-        <div class="form-group">
-            <label>Fecha</label>
-            <input type="date" id="fecha">
+        
+        <div id="seccion-calendario" style="display: none; margin-top: 16px;">
+            <div class="calendar-header">
+                <button class="btn-icon" onclick="cambiarMes(-1)">◀</button>
+                <span id="calendario-mes"></span>
+                <button class="btn-icon" onclick="cambiarMes(1)">▶</button>
+            </div>
+            <div class="calendar-grid">
+                <div class="calendar-day-name">L</div>
+                <div class="calendar-day-name">M</div>
+                <div class="calendar-day-name">X</div>
+                <div class="calendar-day-name">J</div>
+                <div class="calendar-day-name">V</div>
+                <div class="calendar-day-name">S</div>
+                <div class="calendar-day-name">D</div>
+            </div>
+            <div id="calendario-dias" class="calendar-grid"></div>
         </div>
-        <div class="form-group">
-            <label>Observaciones</label>
-            <input type="text" id="desc" placeholder="Nota rápida...">
-        </div>
-        <button class="btn-primary" onclick="guardar()">GUARDAR</button>
     </div>
 
     <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="margin:0; font-size: 1.1rem; color: var(--text-main); text-transform:none;">Historial Sincronizado</h3>
-            <button class="btn-icon" style="background: var(--success); color: white; border: none;" onclick="exportarPDF()">📄 PDF</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleHistorial()">
+            <h3 style="color: var(--text-main); margin: 0; font-size: 1.1rem; text-transform: none;">Historial Sincronizado</h3>
+            <span id="icono-historial" style="font-size: 1.2rem; user-select: none;">➕</span>
         </div>
-        <input type="text" id="buscador" placeholder="Buscar por nota o fecha..." oninput="filtrarLocal()">
-        <div id="lista-cargando" style="text-align:center; padding: 20px; color: var(--text-muted);">Sincronizando datos...</div>
-        <div id="lista"></div>
+        
+        <div id="seccion-historial" style="display: none; margin-top: 16px;">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+                <button class="btn-icon" style="background: var(--success); color: white; border: none;" onclick="exportarPDF()">📄 PDF</button>
+            </div>
+            <input type="text" id="buscador" placeholder="Buscar por nota o fecha..." oninput="filtrarLocal()">
+            <div id="lista-cargando" style="text-align:center; padding: 20px; color: var(--text-muted);">Sincronizando datos...</div>
+            <div id="lista"></div>
+        </div>
     </div>
     
     <button class="btn-danger-outline" onclick="reiniciarAno()">Reiniciar Año Actual</button>
@@ -255,7 +306,7 @@
 <div id="customModal" class="modal-overlay">
     <div class="modal-content">
         <h3 style="margin-top:0; margin-bottom:15px; font-size: 1.1rem;">Confirmación</h3>
-        <p id="modalText" style="font-size: 15px; color: var(--text-muted); margin-bottom: 20px;"></p>
+        <p id="modalText" style="font-size: 15px; color: var(--text-muted); margin-bottom: 20px; white-space: pre-wrap; text-align: left;"></p>
         <div class="modal-buttons">
             <button id="modalBtnCancel">Cancelar</button>
             <button id="modalBtnOk">Confirmar</button>
@@ -445,9 +496,97 @@
 
     // --- INTERFAZ DE USUARIO ---
 
+    let currentCalDate = new Date();
+
+    window.toggleFormulario = () => {
+        const sec = document.getElementById("seccion-formulario");
+        const icono = document.getElementById("icono-formulario");
+        if (sec.style.display === "none") {
+            sec.style.display = "block";
+            icono.innerText = "➖";
+        } else {
+            sec.style.display = "none";
+            icono.innerText = "➕";
+        }
+    };
+
+    window.toggleHistorial = () => {
+        const sec = document.getElementById("seccion-historial");
+        const icono = document.getElementById("icono-historial");
+        if (sec.style.display === "none") {
+            sec.style.display = "block";
+            icono.innerText = "➖";
+        } else {
+            sec.style.display = "none";
+            icono.innerText = "➕";
+        }
+    };
+
+    window.toggleCalendario = () => {
+        const sec = document.getElementById("seccion-calendario");
+        const icono = document.getElementById("icono-calendario");
+        if (sec.style.display === "none") {
+            sec.style.display = "block";
+            icono.innerText = "➖";
+            renderizarCalendario();
+        } else {
+            sec.style.display = "none";
+            icono.innerText = "➕";
+        }
+    };
+
+    window.cambiarMes = (offset) => {
+        currentCalDate.setMonth(currentCalDate.getMonth() + offset);
+        renderizarCalendario();
+    };
+
+    window.mostrarDetalleDia = (fechaStr) => {
+        const registrosDia = registrosLocales.filter(r => r.fecha === fechaStr);
+        if (registrosDia.length === 0) return;
+        
+        let msgs = registrosDia.map(r => `• ${r.tipoOriginal.toUpperCase()}: ${r.horasOriginales}h\n  Nota: ${r.desc}`).join("\n\n");
+        showModal(`📅 Día ${fechaStr.split('-').reverse().join('/')}\n\n${msgs}`);
+    };
+
+    function renderizarCalendario() {
+        const cont = document.getElementById("calendario-dias");
+        if (!cont) return;
+        cont.innerHTML = "";
+        
+        const year = currentCalDate.getFullYear();
+        const month = currentCalDate.getMonth();
+        
+        document.getElementById("calendario-mes").innerText = new Date(year, month).toLocaleString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase();
+            
+        let startDay = new Date(year, month, 1).getDay(); // 0 es Domingo
+        startDay = startDay === 0 ? 6 : startDay - 1; // Convertir Lunes=0
+        
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        for (let i = 0; i < startDay; i++) {
+            cont.innerHTML += `<div class="calendar-day empty"></div>`;
+        }
+        
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const registrosDia = registrosLocales.filter(r => r.fecha === dateStr);
+            
+            let colorClass = "";
+            if (registrosDia.length > 0) {
+                const tipo = registrosDia[0].tipoOriginal;
+                if (tipo === 'negativa') colorClass = "cal-rojo";
+                else if (tipo === 'exceso') colorClass = "cal-amarillo";
+                else colorClass = "cal-verde"; 
+            }
+            
+            cont.innerHTML += `<div class="calendar-day ${colorClass}" ${registrosDia.length > 0 ? `onclick="mostrarDetalleDia('${dateStr}')"` : ''}>${d}</div>`;
+        }
+    }
+
     window.filtrarLocal = () => { renderizarUI(); };
 
     function renderizarUI() {
+        renderizarCalendario(); // Refrescar calendario si creas notas nuevas
         const cont = document.getElementById("lista");
         cont.innerHTML = "";
         let tExtra = 0, tNeg = 0, tExc = 0;
