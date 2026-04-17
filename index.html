@@ -97,7 +97,7 @@
         .header-btns { display: flex; gap: 8px; }
         .btn-icon { 
             background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color);
-            padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 20px;
+            padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 20px; cursor: pointer;
         }
 
         /* CARDS & FORMS */
@@ -120,6 +120,7 @@
         button.btn-primary { background: var(--primary); color: white; border: none; font-weight: 700; margin-top: 8px; border-radius: 8px; padding: 12px 16px; width: 100%; cursor: pointer; }
 
         .item { border-bottom: 1px solid var(--border-color); padding: 16px 0; display: flex; justify-content: space-between; align-items: center; }
+        .item:last-child { border-bottom: none; }
         .tipo { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 12px; display: inline-block; margin-bottom: 6px; }
         .verde { color: #047857; background: #d1fae5; }
         .rojo { color: #be123c; background: #ffe4e6; }
@@ -162,9 +163,11 @@
         .cal-verde { background: #d1fae5; color: #047857; font-weight: bold; border-color: #047857;}
         .cal-rojo { background: #ffe4e6; color: #be123c; font-weight: bold; border-color: #be123c;}
         .cal-amarillo { background: #fef3c7; color: #b45309; font-weight: bold; border-color: #b45309;}
+        .cal-morado { background: #f3e8ff; color: #7e22ce; font-weight: bold; border-color: #7e22ce;}
         .dark-mode .cal-verde { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #34d399;}
         .dark-mode .cal-rojo { background: rgba(225, 29, 72, 0.2); color: #fb7185; border-color: #fb7185;}
         .dark-mode .cal-amarillo { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: #fbbf24;}
+        .dark-mode .cal-morado { background: rgba(126, 34, 206, 0.2); color: #c084fc; border-color: #c084fc;}
 
         /* Modales */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center; }
@@ -178,7 +181,7 @@
 <body>
 
 <!-- PANTALLA DE LOGIN -->
-<div id="login-screen">
+<div id="login-screen" style="display: none;">
     <div class="login-card">
         <h2 style="margin-top:0">Control de Horas</h2>
         <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Inicia sesión para guardar tus registros en la nube.</p>
@@ -292,8 +295,8 @@
         
         <div id="seccion-historial" style="display: none; margin-top: 16px;">
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px;">
-                <button class="btn-icon" style="background: var(--info); color: white; border: none;" onclick="document.getElementById('importFile').click()">📥 Importar datos</button>
-                <button class="btn-icon" style="background: var(--warning); color: white; border: none;" onclick="exportarJSON()">📤 Exportar datos</button>
+                <button class="btn-icon" style="background: var(--info); color: white; border: none;" onclick="document.getElementById('importFile').click()">📥 Importar</button>
+                <button class="btn-icon" style="background: var(--warning); color: white; border: none;" onclick="exportarJSON()">📤 Exportar</button>
                 <button class="btn-icon" style="background: var(--success); color: white; border: none;" onclick="exportarPDF()">📄 PDF</button>
             </div>
             <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarJSON(event)">
@@ -324,14 +327,12 @@
     </div>
 </div>
 
-<!-- FIREBASE Y LÓGICA DE LA APP (Como un Módulo) -->
+<!-- FIREBASE Y LÓGICA DE LA APP -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // 🔴🔴🔴 PASO 3: PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE 🔴🔴🔴
-    // Borra esto y pega lo que te da Firebase en el Paso 1
     let firebaseConfig = {
         apiKey: "AIzaSyA1ZDWVjptthMonjh3izMHo12zSCatIijo",
         authDomain: "registro-horas-fd560.firebaseapp.com",
@@ -342,23 +343,19 @@
         measurementId: "G-SD817XEWSH"
     };
 
-    // (Código interno para que funcione en esta vista previa, no lo borres)
     if (typeof __firebase_config !== 'undefined') { firebaseConfig = JSON.parse(__firebase_config); }
     const appIdStr = typeof __app_id !== 'undefined' ? __app_id : 'horas-md-vercel';
 
-    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     let currentUser = null;
     let unsubscribeData = null;
-    let registrosLocales = []; // Guarda los datos en memoria para filtrar
+    let registrosLocales = []; 
     let isGuestMode = false;
 
     // --- AUTENTICACIÓN ---
-    
-    // Función para auto-login en la vista previa de esta pantalla
     const initAuth = async () => {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
             try { await signInWithCustomToken(auth, __initial_auth_token); } catch(e){}
@@ -377,7 +374,7 @@
             await signInWithPopup(auth, provider);
         } catch (error) {
             console.error(error);
-            showModal("Error al conectar con Google. (Si estás en la vista previa, usa el modo Invitado).");
+            showModal("Error al conectar con Google. Usa el modo Invitado si el problema persiste.");
         }
     };
 
@@ -418,14 +415,15 @@
             cargarDatosNube();
         } else {
             currentUser = null;
-            document.getElementById('login-screen').style.display = 'flex';
+            if (localStorage.getItem('isGuestMode') !== 'true') {
+                document.getElementById('login-screen').style.display = 'flex';
+            }
             document.getElementById('app-container').style.display = 'none';
             if (unsubscribeData) { unsubscribeData(); unsubscribeData = null; }
         }
     });
 
     // --- BASE DE DATOS (FIRESTORE) ---
-
     function cargarDatosNube() {
         if (!currentUser) return;
         
@@ -439,19 +437,16 @@
             return;
         }
 
-        // Referencia a la colección privada de este usuario
         const ref = collection(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros');
         
         document.getElementById("lista-cargando").style.display = "block";
         document.getElementById("lista").innerHTML = "";
 
-        // onSnapshot escucha cambios en tiempo real
         unsubscribeData = onSnapshot(ref, (snapshot) => {
             registrosLocales = [];
             snapshot.forEach(docSnap => {
                 registrosLocales.push({ ...docSnap.data(), id: docSnap.id });
             });
-            // Ordenar por fecha (más reciente primero)
             registrosLocales.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
             document.getElementById("lista-cargando").style.display = "none";
             renderizarUI();
@@ -500,7 +495,7 @@
 
         try {
             const ref = collection(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros');
-            await addDoc(ref, nuevoRegistro); // Guardar en la nube
+            await addDoc(ref, nuevoRegistro);
             
             document.getElementById("horas").value = "";
             document.getElementById("desc").value = "";
@@ -525,7 +520,7 @@
 
             try {
                 const docRef = doc(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros', docId);
-                await deleteDoc(docRef); // Borrar de la nube
+                await deleteDoc(docRef);
                 showToast("Registro eliminado");
             } catch (error) {
                 showModal("Error al borrar.");
@@ -553,7 +548,6 @@
                         const yearStr = year.toString();
                         const registrosBorrables = registrosLocales.filter(item => item.fecha.startsWith(yearStr));
                         
-                        // Borrar uno a uno en la nube
                         for (const reg of registrosBorrables) {
                             const docRef = doc(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros', reg.id);
                             await deleteDoc(docRef);
@@ -569,15 +563,8 @@
     };
 
     // --- INTERFAZ DE USUARIO ---
-
     window.mostrarInfo = () => {
-        showModal(`ℹ️ AYUDA DE LA APLICACIÓN:
-
-• NUEVO REGISTRO: Añade tus horas indicando el tipo, cantidad, fecha y nota. Los cálculos se aplican y suman automáticamente.
-
-• CALENDARIO: Visualiza un resumen mensual. Los días con registros se colorean. Haz clic en un día para leer sus detalles.
-
-• HISTORIAL SINCRONIZADO: Todos tus registros guardados en la nube ordenados por mes. Usa el buscador, borra entradas o exporta a PDF/JSON.`);
+        showModal(`ℹ️ AYUDA DE LA APLICACIÓN:\n\n• NUEVO REGISTRO: Añade tus horas indicando el tipo, cantidad, fecha y nota. Los cálculos se aplican y suman automáticamente.\n\n• CALENDARIO: Visualiza un resumen mensual. Los días con registros se colorean. Haz clic en un día para leer sus detalles.\n\n• HISTORIAL SINCRONIZADO: Todos tus registros guardados en la nube ordenados por mes. Usa el buscador, borra entradas o exporta a PDF/JSON.`);
     };
 
     let currentCalDate = new Date();
@@ -624,12 +611,39 @@
         renderizarCalendario();
     };
 
+    function obtenerFestivo(fechaStr) {
+        const [year, month, day] = fechaStr.split('-');
+        const md = `${month}-${day}`;
+        const festivosFijos = {
+            '01-01': 'Año Nuevo',
+            '01-06': 'Epifanía del Señor',
+            '05-01': 'Fiesta del Trabajo',
+            '06-24': 'San Juan',
+            '08-15': 'Asunción de la Virgen',
+            '09-11': 'Diada Nacional de Cataluña',
+            '10-12': 'Fiesta Nacional de España',
+            '11-01': 'Todos los Santos',
+            '12-06': 'Día de la Constitución Española',
+            '12-08': 'Inmaculada Concepción',
+            '12-25': 'Natividad del Señor',
+            '12-26': 'San Esteban'
+        };
+        return festivosFijos[md] || null;
+    }
+
     window.mostrarDetalleDia = (fechaStr) => {
         const registrosDia = registrosLocales.filter(r => r.fecha === fechaStr);
-        if (registrosDia.length === 0) return;
+        const nombreFestivo = obtenerFestivo(fechaStr);
         
-        let msgs = registrosDia.map(r => `• ${r.tipoOriginal.toUpperCase()}: ${r.horasOriginales}h\n  Nota: ${r.desc}`).join("\n\n");
-        showModal(`📅 Día ${fechaStr.split('-').reverse().join('/')}\n\n${msgs}`);
+        if (registrosDia.length === 0 && !nombreFestivo) return;
+        
+        let msgs = "";
+        if (nombreFestivo) msgs += `🎉 FESTIVO NACIONAL: ${nombreFestivo}\n\n`;
+        if (registrosDia.length > 0) {
+            msgs += registrosDia.map(r => `• ${r.tipoOriginal.toUpperCase()}: ${r.horasOriginales}h\n  Nota: ${r.desc}`).join("\n\n");
+        }
+        
+        showModal(`📅 Día ${fechaStr.split('-').reverse().join('/')}\n\n${msgs.trim()}`);
     };
 
     function renderizarCalendario() {
@@ -642,8 +656,8 @@
         
         document.getElementById("calendario-mes").innerText = new Date(year, month).toLocaleString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase();
             
-        let startDay = new Date(year, month, 1).getDay(); // 0 es Domingo
-        startDay = startDay === 0 ? 6 : startDay - 1; // Convertir Lunes=0
+        let startDay = new Date(year, month, 1).getDay();
+        startDay = startDay === 0 ? 6 : startDay - 1;
         
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         
@@ -654,23 +668,32 @@
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             const registrosDia = registrosLocales.filter(r => r.fecha === dateStr);
+            const nombreFestivo = obtenerFestivo(dateStr);
             
             let colorClass = "";
+            let hasAction = false;
+
+            if (nombreFestivo) {
+                colorClass = "cal-morado";
+                hasAction = true;
+            }
+            
             if (registrosDia.length > 0) {
                 const tipo = registrosDia[0].tipoOriginal;
                 if (tipo === 'negativa') colorClass = "cal-rojo";
                 else if (tipo === 'exceso') colorClass = "cal-amarillo";
                 else colorClass = "cal-verde"; 
+                hasAction = true;
             }
             
-            cont.innerHTML += `<div class="calendar-day ${colorClass}" ${registrosDia.length > 0 ? `onclick="mostrarDetalleDia('${dateStr}')"` : ''}>${d}</div>`;
+            cont.innerHTML += `<div class="calendar-day ${colorClass}" ${hasAction ? `onclick="mostrarDetalleDia('${dateStr}')"` : ''}>${d}</div>`;
         }
     }
 
     window.filtrarLocal = () => { renderizarUI(); };
 
     function renderizarUI() {
-        renderizarCalendario(); // Refrescar calendario si creas notas nuevas
+        renderizarCalendario();
         const cont = document.getElementById("lista");
         cont.innerHTML = "";
         let tExtra = 0, tNeg = 0, tExc = 0;
@@ -693,30 +716,32 @@
             else tExtra += item.horasCalculadas;
 
             const mKey = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}`;
-            if (!meses[mKey]) meses[mKey] = { label: mesNombre, items: [], vence: "" };
+            if (!meses[mKey]) meses[mKey] = { label: mesNombre, items: [] };
             
+            let venceStr = "";
             if (item.tipoOriginal === "extra") {
                 let c = new Date(f.getFullYear(), f.getMonth() + 4, 1);
-                meses[mKey].vence = c.toLocaleString('es-ES', { month: 'short', year: '2-digit' });
+                venceStr = c.toLocaleString('es-ES', { month: 'short', year: '2-digit' });
             }
-            meses[mKey].items.push({ ...item, fFmt });
+            meses[mKey].items.push({ ...item, fFmt, venceStr });
         });
 
         if(Object.keys(meses).length === 0 && registrosLocales.length > 0) {
             cont.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-muted);">No hay coincidencias.</div>`;
         } else if (registrosLocales.length === 0) {
-            cont.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">Aún no tienes registros en la nube.</div>`;
+            cont.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">Aún no tienes registros.</div>`;
         }
 
         Object.keys(meses).sort((a,b) => b.localeCompare(a)).forEach(k => {
             const m = meses[k];
-            cont.innerHTML += `<div class="mes-titulo"><span style="text-transform: capitalize;">${m.label} ${k.split('-')[0]}</span>${m.vence ? '<span style="text-transform: none;">Caduca: '+m.vence+'</span>' : ''}</div>`;
+            cont.innerHTML += `<div class="mes-titulo"><span style="text-transform: capitalize;">${m.label} ${k.split('-')[0]}</span></div>`;
             m.items.forEach(i => {
                 const colors = { extra: 'verde', festiva: 'verde', nocturna: 'verde', negativa: 'rojo', exceso: 'amarillo', inet: 'verde' };
+                const badgeVence = i.venceStr ? `<span style="font-size: 11px; color: var(--text-muted); margin-left: 8px; font-weight: 600;">⏳ Caduca: ${i.venceStr}</span>` : '';
                 cont.innerHTML += `
                     <div class="item">
                         <div style="flex: 1;">
-                            <span class="tipo ${colors[i.tipoOriginal]}">${i.tipoOriginal.toUpperCase()}</span><br>
+                            <span class="tipo ${colors[i.tipoOriginal]}">${i.tipoOriginal.toUpperCase()}</span>${badgeVence}<br>
                             <b style="font-size: 15px;">${i.horasOriginales}h</b> <small style="color: var(--text-muted);">(${i.horasCalculadas.toFixed(2)}h)</small><br>
                             <small style="font-size: 13px; color: var(--text-muted); display:block; margin-top:4px">${i.fFmt} • ${i.desc}</small>
                         </div>
@@ -730,7 +755,7 @@
         document.getElementById("totalExceso").innerText = tExc.toFixed(2);
     }
 
-    // Funciones de UI generales (Modo Oscuro, Toast, PDF...)
+    // Funciones de UI
     window.toggleModo = () => {
         document.body.classList.toggle("dark-mode");
         localStorage.setItem("modo", document.body.classList.contains("dark-mode") ? "dark" : "light");
@@ -813,7 +838,6 @@
             showModal("No hay registros para exportar.");
             return;
         }
-        // Excluimos las ID locales para exportar el archivo limpio
         const exportData = registrosLocales.map(({ fFmt, id, ...rest }) => rest);
         const dataStr = JSON.stringify(exportData, null, 2);
         const blob = new Blob([dataStr], { type: "application/json" });
@@ -837,7 +861,7 @@
                 const data = JSON.parse(e.target.result);
                 if (!Array.isArray(data)) throw new Error("Formato de archivo inválido.");
                 
-                document.getElementById('importFile').value = ''; // Limpiamos input
+                document.getElementById('importFile').value = '';
 
                 showModal(isGuestMode ? `¿Deseas importar ${data.length} registros localmente?` : `¿Deseas importar ${data.length} registros a la nube?`, true, async () => {
                     if (!currentUser) return;
