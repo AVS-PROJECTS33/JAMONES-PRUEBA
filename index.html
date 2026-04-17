@@ -723,8 +723,11 @@
         // 3. Cruzamos las horas consumidas con las extras más antiguas
         let idsTachados = new Set();
         for (let r of extraPositivas) {
-            if (horasConsumidas > 0) {
+            if (horasConsumidas >= (r.horasCalculadas - 0.05)) { // Solo tacha si se ha consumido entera (margen de 0.05 por decimales)
                 idsTachados.add(r.id);
+                horasConsumidas -= r.horasCalculadas;
+            } else {
+                // Si sobra saldo vivo, restamos lo consumido y frenamos
                 horasConsumidas -= r.horasCalculadas;
             }
         }
