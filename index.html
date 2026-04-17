@@ -198,6 +198,7 @@
             <span id="user-name-display" class="user-badge">Cargando usuario...</span>
         </div>
         <div class="header-btns">
+            <button class="btn-icon" onclick="mostrarInfo()" style="background: var(--info); color: white; border: none;" title="Ayuda">ℹ️</button>
             <button class="btn-icon" onclick="toggleModo()">🌓</button>
             <button class="btn-icon" onclick="logout()" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">Salir</button>
         </div>
@@ -233,6 +234,7 @@
                     <option value="festiva">🎉 Festiva (x2.25)</option>
                     <option value="nocturna">🌙 Nocturna (x2.0)</option>
                     <option value="exceso">⚠️ Exceso (x1.0)</option>
+                    <option value="inet">🌐 Añadir saldo inet (x1.0)</option>
                 </select>
             </div>
             <div class="form-group">
@@ -500,6 +502,16 @@
 
     // --- INTERFAZ DE USUARIO ---
 
+    window.mostrarInfo = () => {
+        showModal(`ℹ️ AYUDA DE LA APLICACIÓN:
+
+• NUEVO REGISTRO: Añade tus horas indicando el tipo, cantidad, fecha y nota. Los cálculos se aplican y suman automáticamente.
+
+• CALENDARIO: Visualiza un resumen mensual. Los días con registros se colorean. Haz clic en un día para leer sus detalles.
+
+• HISTORIAL SINCRONIZADO: Todos tus registros guardados en la nube ordenados por mes. Usa el buscador, borra entradas o exporta a PDF/JSON.`);
+    };
+
     let currentCalDate = new Date();
 
     window.toggleFormulario = () => {
@@ -632,7 +644,7 @@
             const m = meses[k];
             cont.innerHTML += `<div class="mes-titulo"><span style="text-transform: capitalize;">${m.label} ${k.split('-')[0]}</span>${m.vence ? '<span style="text-transform: none;">Caduca: '+m.vence+'</span>' : ''}</div>`;
             m.items.forEach(i => {
-                const colors = { extra: 'verde', festiva: 'verde', nocturna: 'verde', negativa: 'rojo', exceso: 'amarillo' };
+                const colors = { extra: 'verde', festiva: 'verde', nocturna: 'verde', negativa: 'rojo', exceso: 'amarillo', inet: 'verde' };
                 cont.innerHTML += `
                     <div class="item">
                         <div style="flex: 1;">
