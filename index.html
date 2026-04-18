@@ -755,6 +755,7 @@
 
     let currentCalDate = new Date();
     let posScroll = { form: 0, cal: 0, hist: 0 }; 
+    let posScrollMeses = {}; // Memoria para meses individuales
 
     window.toggleFormulario = () => {
         const sec = document.getElementById("seccion-formulario");
@@ -810,13 +811,23 @@
 
     window.toggleMes = (mesId) => {
         const div = document.getElementById(`mes-items-${mesId}`);
+        const header = document.getElementById(`mes-header-${mesId}`);
         const icono = document.getElementById(`mes-icono-${mesId}`);
         if (div.style.display === "none") {
+            // Guardamos posición antes de abrir
+            posScrollMeses[mesId] = window.scrollY;
             div.style.display = "block";
             icono.innerText = "▼";
+            setTimeout(() => {
+                header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
         } else {
             div.style.display = "none";
             icono.innerText = "▶";
+            // Volvemos a la posición guardada al cerrar
+            setTimeout(() => {
+                window.scrollTo({ top: posScrollMeses[mesId], behavior: 'smooth' });
+            }, 50);
         }
     };
 
@@ -994,7 +1005,8 @@
             const displayStyle = isExpanded ? 'block' : 'none';
             const iconStr = isExpanded ? '▼' : '▶';
 
-            let mesHTML = `<div class="mes-titulo" onclick="toggleMes('${k}')">
+            // SE AÑADE ID AL HEADER PARA SCROLL
+            let mesHTML = `<div class="mes-titulo" id="mes-header-${k}" onclick="toggleMes('${k}')">
                 <span style="text-transform: capitalize;">${m.label} ${k.split('-')[0]}</span>
                 <span id="mes-icono-${k}" style="font-size: 13px;">${iconStr}</span>
             </div>`;
