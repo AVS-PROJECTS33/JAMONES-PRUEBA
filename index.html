@@ -1215,7 +1215,7 @@
 
     window.exportarPDF = () => {
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFontSize(16); doc.text("REGISTRO HORAS CLOUD", 14, 20);
+        doc.setFontSize(16); doc.text("REGISTRO HORAS MD", 14, 20);
         
         let tExtra = 0, tNeg = 0, tExc = 0;
         registrosLocales.forEach(i => {
