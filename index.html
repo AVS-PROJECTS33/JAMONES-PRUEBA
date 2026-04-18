@@ -134,6 +134,7 @@
         .dark-mode .amarillo { color: #fbbf24; background: rgba(245, 158, 11, 0.15); }
         
         .borrar-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 8px 14px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;}
+        .editar-btn { background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 8px 14px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;}
         
         .mes-titulo { background: var(--bg-body); color: var(--text-muted); padding: 8px 12px; border-radius: 6px; margin-top: 24px; font-weight: 700; font-size: 15px; display: flex; justify-content: space-between; border: 1px solid var(--border-color); text-transform: uppercase; cursor: pointer; user-select: none;}
 
@@ -285,7 +286,8 @@
         </div>
     </div>
 
-    <div class="card">
+    <!-- SE AÑADE ID PARA PODER DESPLAZARSE HASTA AQUÍ -->
+    <div class="card" id="card-nuevo-registro">
         <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleFormulario()">
             <h3 style="color: var(--text-main); margin: 0; font-size: 1.1rem; text-transform: none;">Nuevo Registro</h3>
             <span id="icono-formulario" style="font-size: 1.2rem; user-select: none;">➕</span>
@@ -316,7 +318,10 @@
                 <label>Observaciones</label>
                 <input type="text" id="desc" placeholder="Nota rápida...">
             </div>
-            <button class="btn-primary" onclick="guardar()">GUARDAR</button>
+            <button id="btnGuardar" class="btn-primary" onclick="guardar()">GUARDAR</button>
+            <div id="btnCancelarEdicion" style="display: none; text-align: center; margin-top: 10px;">
+                <a href="javascript:void(0)" onclick="cancelarEdicion()" style="font-size: 13px; color: var(--danger); text-decoration: none; font-weight: bold;">Cancelar edición</a>
+            </div>
         </div>
     </div>
 
@@ -353,18 +358,20 @@
         </div>
         
         <div id="seccion-historial" style="display: none; margin-top: 16px;">
-            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px;">
-                <button class="btn-icon" style="background: var(--info); color: white; border: none;" onclick="document.getElementById('importFile').click()">📥 Importar</button>
-                <button class="btn-icon" style="background: var(--warning); color: white; border: none;" onclick="exportarJSON()">📤 Exportar</button>
-                <button class="btn-icon" style="background: var(--success); color: white; border: none;" onclick="exportarPDF()">📄 PDF</button>
-            </div>
-            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarJSON(event)">
             <input type="text" id="buscador" placeholder="Buscar por nota o fecha..." oninput="filtrarLocal()">
             <div id="lista-cargando" style="text-align:center; padding: 20px; color: var(--text-muted);">Sincronizando datos...</div>
             <div id="lista"></div>
         </div>
     </div>
     
+    <!-- BOTONES DE IMPORTAR / EXPORTAR EXTRAÍDOS AL INICIO Y MÁS PEQUEÑOS -->
+    <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 20px;">
+        <button class="btn-icon" style="background: var(--info); color: white; border: none; padding: 8px 14px; font-size: 13px;" onclick="document.getElementById('importFile').click()">📥 Importar</button>
+        <button class="btn-icon" style="background: var(--warning); color: white; border: none; padding: 8px 14px; font-size: 13px;" onclick="exportarJSON()">📤 Exportar</button>
+        <button class="btn-icon" style="background: var(--success); color: white; border: none; padding: 8px 14px; font-size: 13px;" onclick="exportarPDF()">📄 PDF</button>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importarJSON(event)">
+
     <button class="btn-danger-outline" onclick="reiniciarAno()">Reiniciar Año Actual</button>
 
     <!-- CRÉDITOS DENTRO DE LA APP (NO VISIBLES EN LOGIN) -->
@@ -391,7 +398,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, signOut, signInWithCustomToken, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     let firebaseConfig = {
         apiKey: "AIzaSyA1ZDWVjptthMonjh3izMHo12zSCatIijo",
@@ -414,6 +421,7 @@
     let unsubscribeData = null;
     let registrosLocales = []; 
     let isGuestMode = false;
+    let idEdicion = null;
 
     // --- AUTENTICACIÓN ---
     const initAuth = async () => {
@@ -612,28 +620,76 @@
             timestamp: Date.now()
         };
 
+        if (idEdicion) {
+            const regLocal = registrosLocales.find(r => r.id === idEdicion);
+            if (regLocal) nuevoRegistro.timestamp = regLocal.timestamp;
+        }
+
         if (isGuestMode) {
-            nuevoRegistro.id = Date.now().toString() + Math.random().toString(36).substring(2, 7);
-            registrosLocales.push(nuevoRegistro);
+            if (idEdicion) {
+                const index = registrosLocales.findIndex(r => r.id === idEdicion);
+                if (index !== -1) {
+                    nuevoRegistro.id = idEdicion;
+                    registrosLocales[index] = nuevoRegistro;
+                }
+                showToast("Registro actualizado localmente");
+            } else {
+                nuevoRegistro.id = Date.now().toString() + Math.random().toString(36).substring(2, 7);
+                registrosLocales.push(nuevoRegistro);
+                showToast("Guardado en local");
+            }
+            
             localStorage.setItem('registros_invitado', JSON.stringify(registrosLocales));
-            document.getElementById("horas").value = "";
-            document.getElementById("desc").value = "";
-            showToast("Guardado en local");
+            cancelarEdicion();
             cargarDatosNube();
             return;
         }
 
         try {
-            const ref = collection(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros');
-            await addDoc(ref, nuevoRegistro);
-            
-            document.getElementById("horas").value = "";
-            document.getElementById("desc").value = "";
-            showToast("Guardado en la nube");
+            if (idEdicion) {
+                const docRef = doc(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros', idEdicion);
+                await updateDoc(docRef, nuevoRegistro);
+                showToast("Registro actualizado en la nube");
+            } else {
+                const ref = collection(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros');
+                await addDoc(ref, nuevoRegistro);
+                showToast("Guardado en la nube");
+            }
+            cancelarEdicion();
         } catch (error) {
             console.error(error);
             showModal("Error al guardar en la nube.");
         }
+    };
+
+    window.editarRegistro = (id) => {
+        const reg = registrosLocales.find(r => r.id === id);
+        if (!reg) return;
+        
+        document.getElementById("tipo").value = reg.tipoOriginal;
+        document.getElementById("horas").value = reg.horasOriginales;
+        document.getElementById("fecha").value = reg.fecha;
+        document.getElementById("desc").value = reg.desc !== "-" ? reg.desc : "";
+        
+        idEdicion = id;
+        document.getElementById("btnGuardar").innerText = "ACTUALIZAR REGISTRO";
+        document.getElementById("btnGuardar").style.background = "var(--warning)";
+        document.getElementById("btnCancelarEdicion").style.display = "block";
+        
+        const sec = document.getElementById("seccion-formulario");
+        if (sec.style.display === "none") {
+            toggleFormulario();
+        }
+        document.getElementById("card-nuevo-registro").scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    window.cancelarEdicion = () => {
+        document.getElementById("horas").value = "";
+        document.getElementById("desc").value = "";
+        idEdicion = null;
+        document.getElementById("btnGuardar").innerText = "GUARDAR";
+        document.getElementById("btnGuardar").style.background = "var(--primary)";
+        document.getElementById("btnCancelarEdicion").style.display = "none";
     };
 
     window.borrarRegistro = (docId) => {
@@ -951,7 +1007,10 @@
                                 <span style="font-size: 15px; color: var(--text-muted);">• ${i.desc}</span>
                             </div>
                         </div>
-                        <button class="borrar-btn" onclick="borrarRegistro('${i.id}')">Borrar</button>
+                        <div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch; min-width: 70px; margin-right: 4px;">
+                            <button class="editar-btn" onclick="editarRegistro('${i.id}')">Editar</button>
+                            <button class="borrar-btn" onclick="borrarRegistro('${i.id}')">Borrar</button>
+                        </div>
                     </div>`;
             });
             mesHTML += `</div>`;
