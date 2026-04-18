@@ -135,7 +135,8 @@
         
         .borrar-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 8px 14px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;}
         
-        .mes-titulo { background: var(--bg-body); color: var(--text-muted); padding: 8px 12px; border-radius: 6px; margin-top: 24px; font-weight: 700; font-size: 15px; display: flex; justify-content: space-between; border: 1px solid var(--border-color); text-transform: uppercase; }
+        /* MODIFICADO: Se añade cursor y user-select para los meses desplegables */
+        .mes-titulo { background: var(--bg-body); color: var(--text-muted); padding: 8px 12px; border-radius: 6px; margin-top: 24px; font-weight: 700; font-size: 15px; display: flex; justify-content: space-between; border: 1px solid var(--border-color); text-transform: uppercase; cursor: pointer; user-select: none;}
 
         #mensaje { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text-main); color: var(--bg-card); padding: 10px 24px; border-radius: 30px; display: none; z-index: 9999; font-weight: 600; }
 
@@ -478,10 +479,8 @@
         
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-            // Actualizamos el perfil de Firebase para guardar el Nombre
             await updateProfile(userCredential.user, { displayName: nombre });
             
-            // Refrescamos el nombre en la interfaz de inmediato
             document.getElementById('user-name-display').innerText = `👋 Hola, ${nombre}`;
             showToast("Cuenta creada con éxito");
             
@@ -547,7 +546,6 @@
             currentUser = null;
             if (localStorage.getItem('isGuestMode') !== 'true') {
                 document.getElementById('login-screen').style.display = 'flex';
-                // Reset views to show login form by default
                 document.getElementById('register-form').style.display = 'none';
                 document.getElementById('login-form').style.display = 'block';
             }
@@ -739,6 +737,19 @@
         }
     };
 
+    // NUEVO: Función para alternar meses en el historial
+    window.toggleMes = (mesId) => {
+        const div = document.getElementById(`mes-items-${mesId}`);
+        const icono = document.getElementById(`mes-icono-${mesId}`);
+        if (div.style.display === "none") {
+            div.style.display = "block";
+            icono.innerText = "▼";
+        } else {
+            div.style.display = "none";
+            icono.innerText = "▶";
+        }
+    };
+
     window.cambiarMes = (offset) => {
         currentCalDate.setMonth(currentCalDate.getMonth() + offset);
         renderizarCalendario();
@@ -902,9 +913,20 @@
             cont.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">Aún no tienes registros.</div>`;
         }
 
-        Object.keys(meses).sort((a,b) => b.localeCompare(a)).forEach(k => {
+        Object.keys(meses).sort((a,b) => b.localeCompare(a)).forEach((k, index) => {
             const m = meses[k];
-            cont.innerHTML += `<div class="mes-titulo"><span style="text-transform: capitalize;">${m.label} ${k.split('-')[0]}</span></div>`;
+            const isFiltering = filter !== "";
+            const isExpanded = index === 0 || isFiltering; // Abierto por defecto si es el primero o si hay búsqueda
+            const displayStyle = isExpanded ? 'block' : 'none';
+            const iconStr = isExpanded ? '▼' : '▶';
+
+            let mesHTML = `<div class="mes-titulo" onclick="toggleMes('${k}')">
+                <span style="text-transform: capitalize;">${m.label} ${k.split('-')[0]}</span>
+                <span id="mes-icono-${k}" style="font-size: 13px;">${iconStr}</span>
+            </div>`;
+            
+            mesHTML += `<div id="mes-items-${k}" style="display: ${displayStyle}; padding-top: 8px;">`;
+
             m.items.forEach(i => {
                 const colors = { extra: 'verde', compensacion: 'verde', festiva: 'verde', nocturna: 'verde', negativa: 'rojo', exceso: 'amarillo', inet: 'verde' };
                 
@@ -917,7 +939,7 @@
                     }
                 }
 
-                cont.innerHTML += `
+                mesHTML += `
                     <div class="item">
                         <div style="flex: 1;">
                             <span class="tipo ${colors[i.tipoOriginal]}">${i.tipoOriginal.toUpperCase()}</span>${badgeVence}<br>
@@ -930,6 +952,8 @@
                         <button class="borrar-btn" onclick="borrarRegistro('${i.id}')">Borrar</button>
                     </div>`;
             });
+            mesHTML += `</div>`;
+            cont.innerHTML += mesHTML;
         });
 
         document.getElementById("totalExtra").innerText = tExtra.toFixed(2);
