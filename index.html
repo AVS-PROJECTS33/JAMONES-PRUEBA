@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         :root {
             --bg-body: #f8fafc;
@@ -109,7 +109,11 @@
         .card { background: var(--bg-card); padding: 20px; border-radius: var(--radius); margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); scroll-margin-top: 25px; }
         .top-cards .card { margin-bottom: 0; padding: 16px; text-align: center; border-top-width: 4px; }
         .card-extra { grid-column: 1 / -1; border-top-color: var(--success); }
-        .negative { border-top-color: var(--danger); }
+        
+        /* Cambios en color de Negativas */
+        .negative { border-top-color: #7e22ce; }
+        .dark-mode .negative { border-top-color: #c084fc; }
+        
         .exceso { border-top-color: var(--warning); }
         .card h3 { margin: 0 0 4px 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
         .card-extra h2 { font-size: 2.2rem; margin: 0; color: var(--success); font-weight: 800; }
@@ -129,9 +133,13 @@
         .verde { color: #047857; background: #d1fae5; }
         .rojo { color: #be123c; background: #ffe4e6; }
         .amarillo { color: #b45309; background: #fef3c7; }
+        .azul { color: #1d4ed8; background: #dbeafe; }
+        .morado { color: #7e22ce; background: #f3e8ff; }
         .dark-mode .verde { color: #34d399; background: rgba(16, 185, 129, 0.15); }
         .dark-mode .rojo { color: #fb7185; background: rgba(225, 29, 72, 0.15); }
         .dark-mode .amarillo { color: #fbbf24; background: rgba(245, 158, 11, 0.15); }
+        .dark-mode .azul { color: #60a5fa; background: rgba(59, 130, 246, 0.15); }
+        .dark-mode .morado { color: #c084fc; background: rgba(126, 34, 206, 0.15); }
         
         .borrar-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 8px 14px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;}
         .editar-btn { background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 8px 14px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;}
@@ -163,18 +171,27 @@
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
         .calendar-day-name { font-size: 11px; color: var(--text-muted); font-weight: bold; margin-bottom: 8px;}
         .calendar-day { padding: 8px 0; border-radius: 6px; cursor: pointer; font-size: 13px; border: 1px solid var(--border-color); background: var(--bg-body); transition: all 0.2s;}
-        .calendar-day:hover { border-color: var(--primary); }
+        @media (hover: hover) {
+            .calendar-day:hover { border-color: var(--primary); }
+        }
         .calendar-day.empty { visibility: hidden; border: none; background: transparent; }
         .cal-verde { background: #d1fae5; color: #047857; font-weight: bold; border-color: #047857;}
         .cal-rojo { background: #ffe4e6; color: #be123c; font-weight: bold; border-color: #be123c;}
         .cal-amarillo { background: #fef3c7; color: #b45309; font-weight: bold; border-color: #b45309;}
+        .cal-azul { background: #dbeafe; color: #1d4ed8; font-weight: bold; border-color: #1d4ed8;}
         .cal-morado { background: #f3e8ff; color: #7e22ce; font-weight: bold; border-color: #7e22ce;}
         .cal-finde { color: #3b82f6; font-weight: bold; }
+        
+        /* Festivos en rojo */
+        .festivo-con-registro { color: #be123c !important; font-weight: 900 !important; }
+        
         .dark-mode .cal-verde { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #34d399;}
         .dark-mode .cal-rojo { background: rgba(225, 29, 72, 0.2); color: #fb7185; border-color: #fb7185;}
         .dark-mode .cal-amarillo { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: #fbbf24;}
+        .dark-mode .cal-azul { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: #60a5fa;}
         .dark-mode .cal-morado { background: rgba(126, 34, 206, 0.2); color: #c084fc; border-color: #c084fc;}
         .dark-mode .cal-finde { color: #60a5fa; }
+        .dark-mode .festivo-con-registro { color: #fb7185 !important; }
 
         /* Modales */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 10000; justify-content: center; align-items: center; }
@@ -381,11 +398,11 @@
 
 <div id="mensaje">✅</div>
 
-<!-- Modal de Confirmación -->
+<!-- Modal de Confirmación Genérico -->
 <div id="customModal" class="modal-overlay">
     <div class="modal-content">
-        <h3 style="margin-top:0; margin-bottom:15px; font-size: 1.1rem;">Confirmación</h3>
-        <p id="modalText" style="font-size: 15px; color: var(--text-muted); margin-bottom: 20px; white-space: pre-wrap; text-align: left;"></p>
+        <h3 id="modalTitle" style="margin-top:0; margin-bottom:15px; font-size: 1.1rem;">Confirmación</h3>
+        <div id="modalText" style="font-size: 15px; color: var(--text-muted); margin-bottom: 20px; white-space: pre-wrap; text-align: left;"></div>
         <div class="modal-buttons">
             <button id="modalBtnCancel">Cancelar</button>
             <button id="modalBtnOk">Confirmar</button>
@@ -662,6 +679,10 @@
     };
 
     window.editarRegistro = (id) => {
+        // Cerrar modal si está abierto
+        document.getElementById("customModal").style.display = "none";
+        mCb = null;
+
         const reg = registrosLocales.find(r => r.id === id);
         if (!reg) return;
         
@@ -675,11 +696,14 @@
         document.getElementById("btnGuardar").style.background = "var(--warning)";
         document.getElementById("btnCancelarEdicion").style.display = "block";
         
+        // Abrir formulario si estaba cerrado
         const sec = document.getElementById("seccion-formulario");
         if (sec.style.display === "none") {
             toggleFormulario();
+        } else {
+            // Si ya estaba abierto, hacer scroll suave al formulario
+            document.getElementById("card-nuevo-registro").scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        document.getElementById("card-nuevo-registro").scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
     window.cancelarEdicion = () => {
@@ -692,25 +716,31 @@
     };
 
     window.borrarRegistro = (docId) => {
-        showModal(isGuestMode ? "¿Borrar este registro?" : "¿Borrar este registro de la nube?", true, async () => {
-            if (!currentUser) return;
+        // Cerrar el modal actual si estamos borrando desde el calendario
+        document.getElementById("customModal").style.display = "none";
 
-            if (isGuestMode) {
-                registrosLocales = registrosLocales.filter(r => r.id !== docId);
-                localStorage.setItem('registros_invitado', JSON.stringify(registrosLocales));
-                showToast("Registro eliminado localmente");
-                cargarDatosNube();
-                return;
-            }
+        // Pequeño delay para que no se pisen los modales
+        setTimeout(() => {
+            showModal(isGuestMode ? "¿Borrar este registro?" : "¿Borrar este registro de la nube?", true, async () => {
+                if (!currentUser) return;
 
-            try {
-                const docRef = doc(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros', docId);
-                await deleteDoc(docRef);
-                showToast("Registro eliminado");
-            } catch (error) {
-                showModal("Error al borrar.");
-            }
-        });
+                if (isGuestMode) {
+                    registrosLocales = registrosLocales.filter(r => r.id !== docId);
+                    localStorage.setItem('registros_invitado', JSON.stringify(registrosLocales));
+                    showToast("Registro eliminado localmente");
+                    cargarDatosNube();
+                    return;
+                }
+
+                try {
+                    const docRef = doc(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros', docId);
+                    await deleteDoc(docRef);
+                    showToast("Registro eliminado");
+                } catch (error) {
+                    showModal("Error al borrar.");
+                }
+            });
+        }, 100);
     };
 
     window.reiniciarAno = () => {
@@ -749,7 +779,7 @@
 
     // --- INTERFAZ DE USUARIO ---
     window.mostrarInfo = () => {
-        showModal(`ℹ️ AYUDA DE LA APLICACIÓN:\n\n• NUEVO REGISTRO: Añade tus horas indicando el tipo, cantidad, fecha y nota. Los cálculos se aplican y suman automáticamente.\n\n• CALENDARIO: Visualiza un resumen mensual. Los días con registros se colorean. Haz clic en un día para leer sus detalles.\n\n• HISTORIAL: Todos tus registros guardados en la nube ordenados por mes. Usa el buscador, borra entradas o exporta a PDF/JSON.`);
+        showModal(`ℹ️ AYUDA DE LA APLICACIÓN:\n\n• NUEVO REGISTRO: Añade tus horas indicando el tipo, cantidad, fecha y nota. Los cálculos se aplican y suman automáticamente.\n\n• CALENDARIO: Visualiza un resumen mensual. Los días con registros se colorean. Haz clic en un día para leer sus detalles o añadir notas.\n\n• HISTORIAL: Todos tus registros guardados en la nube ordenados por mes. Usa el buscador, borra entradas o exporta a PDF/JSON.`, false, null, "Ayuda");
     };
 
     let currentCalDate = new Date();
@@ -853,23 +883,82 @@
         return festivosFijos[md] || null;
     }
 
-    window.mostrarDetalleDia = (fechaStr) => {
+    // Función global para redirigir desde el calendario al nuevo registro
+    window.abrirNuevoRegistroDesdeCalendario = (fechaStr) => {
+        // Cerrar modal
+        document.getElementById("customModal").style.display = "none";
+        
+        // Colapsar calendario visualmente
+        const secCal = document.getElementById("seccion-calendario");
+        const iconoCal = document.getElementById("icono-calendario");
+        if(secCal.style.display !== "none") {
+            secCal.style.display = "none";
+            iconoCal.innerText = "➕";
+        }
+
+        // Expandir formulario si no está abierto
+        const secForm = document.getElementById("seccion-formulario");
+        if (secForm.style.display === "none") {
+            toggleFormulario();
+        }
+        
+        // Poner fecha y hacer scroll
+        document.getElementById("fecha").value = fechaStr;
+        setTimeout(() => {
+            document.getElementById("card-nuevo-registro").scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Resaltar brevemente el campo fecha
+            const inputFecha = document.getElementById("fecha");
+            inputFecha.style.borderColor = "var(--primary)";
+            inputFecha.style.boxShadow = "0 0 0 2px rgba(59,130,246,0.3)";
+            setTimeout(() => {
+                inputFecha.style.borderColor = "var(--border-color)";
+                inputFecha.style.boxShadow = "none";
+            }, 1500);
+        }, 100);
+    };
+
+    window.clickDiaCalendario = (fechaStr, tieneRegistros) => {
         const registrosDia = registrosLocales.filter(r => r.fecha === fechaStr);
         const nombreFestivo = obtenerFestivo(fechaStr);
         
-        if (registrosDia.length === 0 && !nombreFestivo) return;
+        let htmlContent = "";
         
-        let msgs = "";
-        if (nombreFestivo) msgs += `🎉 FESTIVO NACIONAL: ${nombreFestivo}\n\n`;
-        if (registrosDia.length > 0) {
-            msgs += registrosDia.map(r => {
-                const safeDesc = r.desc.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                return `• ${r.tipoOriginal.toUpperCase()}: ${r.horasOriginales}h\n  Nota: ${safeDesc}`;
-            }).join("\n\n");
+        if (nombreFestivo) {
+            htmlContent += `<div style="margin-bottom: 15px; color: #be123c; font-weight: bold; background: rgba(225, 29, 72, 0.1); padding: 8px; border-radius: 6px;">🎉 FESTIVO: ${nombreFestivo}</div>`;
         }
         
-        const finalMsg = `<span style="font-size: 17px; font-weight: bold; color: var(--text-main);">📅 Día ${fechaStr.split('-').reverse().join('/')}\n\n${msgs.trim()}</span>`;
-        showModal(finalMsg);
+        if (registrosDia.length > 0) {
+            registrosDia.forEach(r => {
+                let safeDesc = r.desc.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                if (safeDesc === "-") safeDesc = ""; // Limpiar guion por defecto
+                
+                const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde' };
+
+                htmlContent += `<div class="item" style="text-align: left; padding: 16px 0; align-items: flex-start; margin-left: -8px;">
+<div style="flex: 1; padding-right: 12px; text-align: left;">
+<span class="tipo ${colors[r.tipoOriginal]}">${r.tipoOriginal.toUpperCase()}</span><br>
+<b style="font-size: 19px;">${r.horasOriginales}h</b> <span style="font-size: 15px; color: var(--text-muted);">(${r.horasCalculadas.toFixed(2)}h)</span><br>
+<div style="margin-top:8px; font-size: 16px; color: var(--text-main);">
+<b>Notas:</b> <span style="color: var(--text-muted);">${safeDesc}</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; min-width: 95px;">
+<button class="editar-btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); font-weight: bold; padding: 8px 6px;" onclick="abrirNuevoRegistroDesdeCalendario('${fechaStr}')">Añadir Reg.</button>
+<button class="editar-btn" onclick="editarRegistro('${r.id}')">Editar</button>
+<button class="borrar-btn" onclick="borrarRegistro('${r.id}')">Borrar</button>
+</div>
+</div>`;
+            });
+        } else {
+            // Diseño para día vacío
+            htmlContent += `<div style="padding: 10px 0; text-align: left; color: var(--text-muted); font-size: 16px; margin-left: -8px;">
+<p style="margin-top:0;">No hay notas ni horas registradas en este día.</p>
+<button class="btn-primary" style="background: var(--success); width: 100%; margin-top: 10px; padding: 12px;" onclick="abrirNuevoRegistroDesdeCalendario('${fechaStr}')">➕ Añadir Registro</button>
+</div>`;
+        }
+
+        const tituloModal = `📅 Día ${fechaStr.split('-').reverse().join('/')}`;
+        showModal(htmlContent, false, null, tituloModal);
     };
 
     function renderizarCalendario() {
@@ -897,27 +986,34 @@
             const nombreFestivo = obtenerFestivo(dateStr);
             
             let colorClass = "";
-            let hasAction = false;
+            let tieneRegistros = false;
 
             if (nombreFestivo) {
-                colorClass = "cal-morado";
-                hasAction = true;
+                colorClass = "cal-rojo";
+                tieneRegistros = true;
             }
             
             if (registrosDia.length > 0) {
                 const tipo = registrosDia[0].tipoOriginal;
-                if (tipo === 'negativa') colorClass = "cal-rojo";
+                if (tipo === 'negativa') colorClass = "cal-morado";
                 else if (tipo === 'exceso') colorClass = "cal-amarillo";
+                else if (tipo === 'compensacion') colorClass = "cal-azul";
                 else colorClass = "cal-verde"; 
-                hasAction = true;
+                
+                if (nombreFestivo) {
+                    colorClass += " festivo-con-registro";
+                }
+                
+                tieneRegistros = true;
             }
             
             const dayOfWeek = new Date(year, month, d).getDay();
-            if (!hasAction && (dayOfWeek === 0 || dayOfWeek === 6)) {
+            if (!tieneRegistros && (dayOfWeek === 0 || dayOfWeek === 6)) {
                 colorClass = "cal-finde";
             }
             
-            cont.innerHTML += `<div class="calendar-day ${colorClass}" ${hasAction ? `onclick="mostrarDetalleDia('${dateStr}')"` : ''}>${d}</div>`;
+            // SIEMPRE asignamos el evento onclick ahora, pasando si tiene o no registros
+            cont.innerHTML += `<div class="calendar-day ${colorClass}" onclick="clickDiaCalendario('${dateStr}', ${tieneRegistros})">${d}</div>`;
         }
     }
 
@@ -1011,7 +1107,7 @@
             mesHTML += `<div id="mes-items-${k}" style="display: ${displayStyle}; padding-top: 8px;">`;
 
             m.items.forEach(i => {
-                const colors = { extra: 'verde', compensacion: 'verde', festiva: 'verde', nocturna: 'verde', negativa: 'rojo', exceso: 'amarillo', inet: 'verde' };
+                const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde' };
                 
                 let badgeVence = '';
                 if (i.venceStr) {
@@ -1061,11 +1157,13 @@
     }
 
     let mCb = null;
-    window.showModal = (msg, conf = false, cb = null) => {
+    // Función showModal actualizada para permitir cambiar el título y cambiar Entendido por Atrás
+    window.showModal = (msg, conf = false, cb = null, title = "Confirmación") => {
+        document.getElementById("modalTitle").innerText = title;
         document.getElementById("modalText").innerHTML = msg;
         document.getElementById("customModal").style.display = "flex";
         document.getElementById("modalBtnCancel").style.display = conf ? "block" : "none";
-        document.getElementById("modalBtnOk").innerText = conf ? "Confirmar" : "Entendido";
+        document.getElementById("modalBtnOk").innerText = conf ? "Confirmar" : "Atrás";
         document.getElementById("modalBtnOk").style.background = conf ? "var(--danger)" : "var(--primary)";
         mCb = cb;
     };
