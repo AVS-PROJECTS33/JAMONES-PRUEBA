@@ -773,7 +773,6 @@
         return festivosFijos[md] || null;
     }
 
-    // MODIFICADO: Envuelve todo el texto en <span> para hacerlo grande y negrita
     window.mostrarDetalleDia = (fechaStr) => {
         const registrosDia = registrosLocales.filter(r => r.fecha === fechaStr);
         const nombreFestivo = obtenerFestivo(fechaStr);
@@ -978,7 +977,6 @@
     }
 
     let mCb = null;
-    // MODIFICADO: Utiliza innerHTML para permitir estilos dentro de los modales
     window.showModal = (msg, conf = false, cb = null) => {
         document.getElementById("modalText").innerHTML = msg;
         document.getElementById("customModal").style.display = "flex";
@@ -1020,27 +1018,59 @@
             margin: { left: 14, right: 14 }
         });
 
-        const finalY = doc.lastAutoTable.finalY || 35;
-        doc.setFontSize(11);
-        doc.text("DETALLE DE REGISTROS", 14, finalY + 15);
+        let finalY = doc.lastAutoTable.finalY || 35;
+        
+        const meses = {};
+        const registrosSorted = [...registrosLocales].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
-        const tableData = registrosLocales.map(i => [
-            i.fecha.split('-').reverse().join('/'), 
-            i.tipoOriginal.toUpperCase(), 
-            i.horasOriginales.toFixed(2), 
-            i.horasCalculadas.toFixed(2), 
-            i.desc
-        ]);
-
-        doc.autoTable({ 
-            startY: finalY + 20, 
-            head: [['Fecha', 'Tipo', 'Horas Base', 'Horas Calc.', 'Observaciones']], 
-            body: tableData,
-            headStyles: { fillColor: [59, 130, 246] }, 
-            alternateRowStyles: { fillColor: [248, 250, 252] },
-            margin: { left: 14, right: 14 }
+        registrosSorted.forEach(item => {
+            const f = new Date(item.fecha);
+            const mKey = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}`;
+            const mesNombre = f.toLocaleString('es-ES', { month: 'long' });
+            if (!meses[mKey]) meses[mKey] = { label: mesNombre, year: f.getFullYear(), items: [] };
+            meses[mKey].items.push(item);
         });
-        doc.save(`Horas_MD_${new Date().toLocaleDateString()}.pdf`);
+
+        if (Object.keys(meses).length === 0) {
+            doc.setFontSize(11);
+            doc.text("No hay registros detallados.", 14, finalY + 15);
+        } else {
+            Object.keys(meses).sort((a,b) => b.localeCompare(a)).forEach(k => {
+                const m = meses[k];
+                finalY += 15;
+                
+                if (finalY > 270) {
+                    doc.addPage();
+                    finalY = 20;
+                }
+                
+                doc.setFontSize(12);
+                doc.setTextColor(40);
+                doc.setFont(undefined, 'bold');
+                doc.text(`${m.label.toUpperCase()} ${m.year}`, 14, finalY);
+
+                const tableData = m.items.map(i => [
+                    i.fecha.split('-').reverse().join('/'), 
+                    i.tipoOriginal.toUpperCase(), 
+                    i.horasOriginales.toFixed(2), 
+                    i.horasCalculadas.toFixed(2), 
+                    i.desc
+                ]);
+
+                doc.autoTable({ 
+                    startY: finalY + 4, 
+                    head: [['Fecha', 'Tipo', 'Horas Base', 'Horas Calc.', 'Observaciones']], 
+                    body: tableData,
+                    headStyles: { fillColor: [59, 130, 246] }, 
+                    alternateRowStyles: { fillColor: [248, 250, 252] },
+                    margin: { left: 14, right: 14 }
+                });
+                
+                finalY = doc.lastAutoTable.finalY;
+            });
+        }
+
+        doc.save(`Horas_MD_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.pdf`);
     };
 
     window.exportarJSON = () => {
