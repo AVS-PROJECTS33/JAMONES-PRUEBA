@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>REGISTRO HORAS CLOUD</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- MODIFICADO: Prevenir zoom en móviles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- Librerías para PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -44,6 +45,9 @@
             color: var(--text-main); 
             transition: background-color 0.3s ease, color 0.3s ease;
             font-size: 15px;
+            /* MODIFICADO: Prevenir zoom y comportamientos táctiles no deseados */
+            touch-action: manipulation;
+            -webkit-text-size-adjust: 100%;
         }
 
         .container { padding: 16px 12px; max-width: 600px; margin: 0 auto; }
@@ -113,7 +117,8 @@
         
         .form-group { text-align: left; margin-bottom: 12px; }
         .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
-        input, select { width: 100%; max-width: 100%; box-sizing: border-box; padding: 12px 14px; height: 48px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 15px; font-family: inherit; background: var(--bg-body); color: var(--text-main); }
+        input, select { width: 100%; max-width: 100%; box-sizing: border-box; padding: 12px 14px; height: 48px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 16px; font-family: inherit; background: var(--bg-body); color: var(--text-main); }
+        /* Se añade font-size: 16px a los inputs para evitar auto-zoom en iOS */
         input:focus, select:focus { outline: none; border-color: var(--primary); }
         input[type="date"] { -webkit-appearance: none; appearance: none; display: block; }
         
