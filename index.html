@@ -326,7 +326,7 @@
     </div>
 
     <!-- SECCIÓN CALENDARIO -->
-    <div class="card">
+    <div class="card" id="card-calendario">
         <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleCalendario()">
             <h3 style="color: var(--text-main); margin: 0; font-size: 1.1rem; text-transform: none;">Calendario</h3>
             <span id="icono-calendario" style="font-size: 1.2rem; user-select: none;">➕</span>
@@ -351,7 +351,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-historial">
         <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleHistorial()">
             <h3 style="color: var(--text-main); margin: 0; font-size: 1.1rem; text-transform: none;">Historial</h3>
             <span id="icono-historial" style="font-size: 1.2rem; user-select: none;">➕</span>
@@ -754,16 +754,22 @@
     };
 
     let currentCalDate = new Date();
+    let posScroll = { form: 0, cal: 0, hist: 0 }; 
 
     window.toggleFormulario = () => {
         const sec = document.getElementById("seccion-formulario");
         const icono = document.getElementById("icono-formulario");
         if (sec.style.display === "none") {
+            posScroll.form = window.scrollY; 
             sec.style.display = "block";
             icono.innerText = "➖";
+            setTimeout(() => {
+                document.getElementById("card-nuevo-registro").scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 50);
         } else {
             sec.style.display = "none";
             icono.innerText = "➕";
+            setTimeout(() => window.scrollTo({ top: posScroll.form, behavior: 'smooth' }), 50); 
         }
     };
 
@@ -771,11 +777,16 @@
         const sec = document.getElementById("seccion-historial");
         const icono = document.getElementById("icono-historial");
         if (sec.style.display === "none") {
+            posScroll.hist = window.scrollY; 
             sec.style.display = "block";
             icono.innerText = "➖";
+            setTimeout(() => {
+                document.getElementById("card-historial").scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
         } else {
             sec.style.display = "none";
             icono.innerText = "➕";
+            setTimeout(() => window.scrollTo({ top: posScroll.hist, behavior: 'smooth' }), 50); 
         }
     };
 
@@ -783,12 +794,17 @@
         const sec = document.getElementById("seccion-calendario");
         const icono = document.getElementById("icono-calendario");
         if (sec.style.display === "none") {
+            posScroll.cal = window.scrollY; 
             sec.style.display = "block";
             icono.innerText = "➖";
             renderizarCalendario();
+            setTimeout(() => {
+                document.getElementById("card-calendario").scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 50);
         } else {
             sec.style.display = "none";
             icono.innerText = "➕";
+            setTimeout(() => window.scrollTo({ top: posScroll.cal, behavior: 'smooth' }), 50); 
         }
     };
 
