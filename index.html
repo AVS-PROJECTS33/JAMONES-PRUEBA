@@ -929,15 +929,51 @@
         }
         
         if (registrosDia.length > 0) {
+            // Calcular horas consumidas para saber si está tachado (caducidad)
+            let horasConsumidas = 0;
+            registrosLocales.forEach(item => {
+                if (item.horasOriginales < 0 && item.tipoOriginal !== "negativa" && item.tipoOriginal !== "exceso") {
+                    horasConsumidas += Math.abs(item.horasCalculadas);
+                }
+            });
+
+            let extraPositivas = registrosLocales.filter(reg => (reg.tipoOriginal === "extra" || reg.tipoOriginal === "compensacion") && reg.horasOriginales > 0)
+                .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+            let idsTachados = new Set();
+            for (let reg of extraPositivas) {
+                if (horasConsumidas >= (reg.horasCalculadas - 0.05)) {
+                    idsTachados.add(reg.id);
+                    horasConsumidas -= reg.horasCalculadas;
+                } else {
+                    horasConsumidas -= reg.horasCalculadas;
+                }
+            }
+
             registrosDia.forEach(r => {
                 let safeDesc = r.desc.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 if (safeDesc === "-") safeDesc = ""; // Limpiar guion por defecto
+                
+                // Lógica de caducidad
+                let badgeVence = '';
+                if ((r.tipoOriginal === "extra" || r.tipoOriginal === "compensacion") && r.horasOriginales > 0) {
+                    const fParts = r.fecha.split('-');
+                    const f = new Date(fParts[0], fParts[1] - 1, fParts[2]); 
+                    let c = new Date(f.getFullYear(), f.getMonth() + 4, 1);
+                    let venceStr = c.toLocaleString('es-ES', { month: 'short', year: '2-digit' });
+                    
+                    if (idsTachados.has(r.id)) {
+                        badgeVence = `<span style="font-size: 12px; color: var(--text-muted); margin-left: 8px; font-weight: 600; text-decoration: line-through; opacity: 0.6;">⏳ Caduca: ${venceStr}</span>`;
+                    } else {
+                        badgeVence = `<span style="font-size: 12px; color: var(--text-muted); margin-left: 8px; font-weight: 600;">⏳ Caduca: ${venceStr}</span>`;
+                    }
+                }
                 
                 const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde' };
 
                 htmlContent += `<div class="item" style="text-align: left; padding: 16px 0; align-items: flex-start; margin-left: -8px;">
 <div style="flex: 1; padding-right: 12px; text-align: left;">
-<span class="tipo ${colors[r.tipoOriginal]}">${r.tipoOriginal.toUpperCase()}</span><br>
+<span class="tipo ${colors[r.tipoOriginal]}">${r.tipoOriginal.toUpperCase()}</span>${badgeVence}<br>
 <b style="font-size: 19px;">${r.horasOriginales}h</b> <span style="font-size: 15px; color: var(--text-muted);">(${r.horasCalculadas.toFixed(2)}h)</span><br>
 <div style="margin-top:8px; font-size: 16px; color: var(--text-main);">
 <b>Notas:</b> <span style="color: var(--text-muted);">${safeDesc}</span>
