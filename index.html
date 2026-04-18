@@ -106,7 +106,6 @@
 
         /* CARDS & FORMS */
         .top-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        /* MODIFICADO: Añadido scroll-margin-top para que al subir no quede pegado arriba */
         .card { background: var(--bg-card); padding: 20px; border-radius: var(--radius); margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); scroll-margin-top: 25px; }
         .top-cards .card { margin-bottom: 0; padding: 16px; text-align: center; border-top-width: 4px; }
         .card-extra { grid-column: 1 / -1; border-top-color: var(--success); }
@@ -137,7 +136,6 @@
         .borrar-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 8px 14px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;}
         .editar-btn { background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 8px 14px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;}
         
-        /* MODIFICADO: Añadido scroll-margin-top para los meses del historial */
         .mes-titulo { background: var(--bg-body); color: var(--text-muted); padding: 8px 12px; border-radius: 6px; margin-top: 24px; font-weight: 700; font-size: 15px; display: flex; justify-content: space-between; border: 1px solid var(--border-color); text-transform: uppercase; cursor: pointer; user-select: none; scroll-margin-top: 25px;}
 
         #mensaje { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text-main); color: var(--bg-card); padding: 10px 24px; border-radius: 30px; display: none; z-index: 9999; font-weight: 600; }
@@ -767,8 +765,8 @@
             sec.style.display = "block";
             icono.innerText = "➖";
             setTimeout(() => {
-                // MODIFICADO: Se desplaza al principio (start) para ir arriba pero respetando el scroll-margin del CSS
-                document.getElementById("card-nuevo-registro").scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // MODIFICADO: Vuelve a centrarse al abrir
+                document.getElementById("card-nuevo-registro").scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 50);
         } else {
             sec.style.display = "none";
@@ -785,8 +783,8 @@
             sec.style.display = "block";
             icono.innerText = "➖";
             setTimeout(() => {
-                // MODIFICADO: Se desplaza al principio (start)
-                document.getElementById("card-historial").scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // MODIFICADO: Vuelve a centrarse al abrir
+                document.getElementById("card-historial").scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 50);
         } else {
             sec.style.display = "none";
@@ -804,8 +802,8 @@
             icono.innerText = "➖";
             renderizarCalendario();
             setTimeout(() => {
-                // MODIFICADO: Se desplaza al principio (start)
-                document.getElementById("card-calendario").scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // MODIFICADO: Vuelve a centrarse al abrir
+                document.getElementById("card-calendario").scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 50);
         } else {
             sec.style.display = "none";
@@ -823,7 +821,7 @@
             div.style.display = "block";
             icono.innerText = "▼";
             setTimeout(() => {
-                // MODIFICADO: Ahora se desplaza al principio (start) respetando el scroll-margin
+                // Se mantiene en la parte superior con margen (ajustado anteriormente)
                 header.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 50);
         } else {
