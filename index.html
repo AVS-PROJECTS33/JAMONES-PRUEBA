@@ -616,7 +616,8 @@
         const fecha = document.getElementById("fecha").value;
         const tipoInput = document.getElementById("tipo").value;
 
-        if (isNaN(hIn) || hIn === 0) { showModal("Indica una cantidad de horas válida."); return; }
+        // Se ha modificado para permitir el número 0
+        if (isNaN(hIn)) { showModal("Indica una cantidad de horas válida."); return; }
         if (!fecha) { showModal("La fecha es necesaria."); return; }
         if (!currentUser) { showModal("Debes iniciar sesión."); return; }
 
@@ -954,9 +955,9 @@
                 let safeDesc = r.desc.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 if (safeDesc === "-") safeDesc = ""; // Limpiar guion por defecto
                 
-                // Lógica de caducidad
+                // Lógica de caducidad SOLO para extras
                 let badgeVence = '';
-                if ((r.tipoOriginal === "extra" || r.tipoOriginal === "compensacion") && r.horasOriginales > 0) {
+                if (r.tipoOriginal === "extra" && r.horasOriginales > 0) {
                     const fParts = r.fecha.split('-');
                     const f = new Date(fParts[0], fParts[1] - 1, fParts[2]); 
                     let c = new Date(f.getFullYear(), f.getMonth() + 4, 1);
@@ -1110,7 +1111,8 @@
             let venceStr = "";
             let tachado = false;
             
-            if ((item.tipoOriginal === "extra" || item.tipoOriginal === "compensacion") && item.horasOriginales > 0) {
+            // Lógica de caducidad SOLO para extras en la lista
+            if (item.tipoOriginal === "extra" && item.horasOriginales > 0) {
                 let c = new Date(f.getFullYear(), f.getMonth() + 4, 1);
                 venceStr = c.toLocaleString('es-ES', { month: 'short', year: '2-digit' });
                 
