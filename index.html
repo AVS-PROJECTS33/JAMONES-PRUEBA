@@ -135,11 +135,13 @@
         .amarillo { color: #b45309; background: #fef3c7; }
         .azul { color: #1d4ed8; background: #dbeafe; }
         .morado { color: #7e22ce; background: #f3e8ff; }
+        .amarillo-chillon { color: #422006; background: #fde047; }
         .dark-mode .verde { color: #34d399; background: rgba(16, 185, 129, 0.15); }
         .dark-mode .rojo { color: #fb7185; background: rgba(225, 29, 72, 0.15); }
         .dark-mode .amarillo { color: #fbbf24; background: rgba(245, 158, 11, 0.15); }
         .dark-mode .azul { color: #60a5fa; background: rgba(59, 130, 246, 0.15); }
         .dark-mode .morado { color: #c084fc; background: rgba(126, 34, 206, 0.15); }
+        .dark-mode .amarillo-chillon { color: #fef08a; background: rgba(250, 204, 21, 0.2); }
         
         .borrar-btn { background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 8px 14px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;}
         .editar-btn { background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 8px 14px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer;}
@@ -180,6 +182,7 @@
         .cal-amarillo { background: #fef3c7; color: #b45309; font-weight: bold; border-color: #b45309;}
         .cal-azul { background: #dbeafe; color: #1d4ed8; font-weight: bold; border-color: #1d4ed8;}
         .cal-morado { background: #f3e8ff; color: #7e22ce; font-weight: bold; border-color: #7e22ce;}
+        .cal-amarillo-chillon { background: #fef08a; color: #713f12; font-weight: bold; border-color: #facc15;}
         .cal-finde { color: #3b82f6; font-weight: bold; }
         
         /* Festivos en rojo */
@@ -190,6 +193,7 @@
         .dark-mode .cal-amarillo { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: #fbbf24;}
         .dark-mode .cal-azul { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: #60a5fa;}
         .dark-mode .cal-morado { background: rgba(126, 34, 206, 0.2); color: #c084fc; border-color: #c084fc;}
+        .dark-mode .cal-amarillo-chillon { background: rgba(250, 204, 21, 0.2); color: #fde047; border-color: #fde047;}
         .dark-mode .cal-finde { color: #60a5fa; }
         .dark-mode .festivo-con-registro { color: #fb7185 !important; }
 
@@ -313,7 +317,7 @@
             <div class="form-group">
                 <label>Tipo de hora</label>
                 <!-- Se ha añadido onfocus y onclick para centrar la pantalla al abrir -->
-                <select id="tipo" onfocus="setTimeout(() => this.parentElement.scrollIntoView({behavior: 'smooth', block: 'center'}), 150)" onclick="setTimeout(() => this.parentElement.scrollIntoView({behavior: 'smooth', block: 'center'}), 150)">
+                <select id="tipo" onchange="toggleCamposVacaciones()" onfocus="setTimeout(() => this.parentElement.scrollIntoView({behavior: 'smooth', block: 'center'}), 150)" onclick="setTimeout(() => this.parentElement.scrollIntoView({behavior: 'smooth', block: 'center'}), 150)">
                     <option value="extra">➕ Extra (x1.75)</option>
                     <option value="compensacion">⚖️ Compensación (x1.0)</option>
                     <option value="negativa">➖ Negativa (x1.0)</option>
@@ -321,13 +325,18 @@
                     <option value="festiva">🎉 Festiva (x2.25)</option>
                     <option value="nocturna">🌙 Nocturna (x2.0)</option>
                     <option value="inet">🌐 Añadir saldo inet (x1.0)</option>
+                    <option value="vacaciones">🌴 Vacaciones</option>
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="grupo-semana" style="display: none;">
+                <label>Semana del año</label>
+                <select id="semana"></select>
+            </div>
+            <div class="form-group" id="grupo-horas">
                 <label>Horas</label>
                 <input type="number" id="horas" placeholder="Ej: 2.5" step="0.01">
             </div>
-            <div class="form-group">
+            <div class="form-group" id="grupo-fecha">
                 <label>Fecha</label>
                 <input type="date" id="fecha">
             </div>
@@ -577,6 +586,50 @@
         }
     });
 
+    window.toggleCamposVacaciones = () => {
+        const isVac = document.getElementById("tipo").value === "vacaciones";
+        const isEditing = idEdicion !== null;
+        
+        if (isVac && !isEditing) {
+            document.getElementById("grupo-semana").style.display = "block";
+            document.getElementById("grupo-fecha").style.display = "none";
+            document.getElementById("grupo-horas").style.display = "none";
+            if (document.getElementById("semana").options.length === 0) {
+                window.generarSemanas();
+            }
+        } else {
+            document.getElementById("grupo-semana").style.display = "none";
+            document.getElementById("grupo-fecha").style.display = "block";
+            document.getElementById("grupo-horas").style.display = "block";
+        }
+    };
+
+    window.generarSemanas = () => {
+        const select = document.getElementById("semana");
+        select.innerHTML = "";
+        const year = new Date().getFullYear();
+        let d = new Date(year, 0, 1);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        d = new Date(d.setDate(diff));
+
+        for (let weekNum = 1; weekNum <= 53; weekNum++) {
+            if (weekNum > 52 && d.getMonth() === 0 && d.getDate() > 4) break; 
+            
+            const startStr = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+            let dEnd = new Date(d);
+            dEnd.setDate(dEnd.getDate() + 6);
+            const endStr = `${String(dEnd.getDate()).padStart(2,'0')}/${String(dEnd.getMonth()+1).padStart(2,'0')}`;
+            
+            const opt = document.createElement("option");
+            opt.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            opt.text = `Semana ${weekNum} (${startStr} - ${endStr})`;
+            select.appendChild(opt);
+            
+            d.setDate(d.getDate() + 7);
+        }
+    };
+
     // --- BASE DE DATOS (FIRESTORE) ---
     function cargarDatosNube() {
         if (!currentUser) return;
@@ -612,9 +665,62 @@
 
     window.guardar = async () => {
         const hIn = parseFloat(document.getElementById("horas").value);
-        const desc = document.getElementById("desc").value || "-";
-        const fecha = document.getElementById("fecha").value;
+        const descInput = document.getElementById("desc").value;
         const tipoInput = document.getElementById("tipo").value;
+
+        if (tipoInput === "vacaciones" && !idEdicion) {
+            const startDateStr = document.getElementById("semana").value;
+            if (!startDateStr) { showModal("Selecciona una semana."); return; }
+            if (!currentUser) { showModal("Debes iniciar sesión."); return; }
+            
+            const fParts = startDateStr.split('-');
+            const startD = new Date(fParts[0], fParts[1]-1, fParts[2]);
+            const desc = descInput || "Vacaciones";
+            
+            let newRecords = [];
+            for(let i=0; i<7; i++) {
+                let currentD = new Date(startD);
+                currentD.setDate(startD.getDate() + i);
+                const fStr = `${currentD.getFullYear()}-${String(currentD.getMonth()+1).padStart(2, '0')}-${String(currentD.getDate()).padStart(2, '0')}`;
+                
+                newRecords.push({
+                    horasCalculadas: 0,
+                    horasOriginales: 0,
+                    desc: desc,
+                    fecha: fStr,
+                    tipoOriginal: "vacaciones",
+                    timestamp: Date.now() + i
+                });
+            }
+
+            if (isGuestMode) {
+                newRecords.forEach(nr => {
+                    nr.id = Date.now().toString() + Math.random().toString(36).substring(2, 7);
+                    registrosLocales.push(nr);
+                });
+                localStorage.setItem('registros_invitado', JSON.stringify(registrosLocales));
+                showToast("Semana de vacaciones guardada en local");
+                cancelarEdicion();
+                cargarDatosNube();
+                return;
+            }
+
+            try {
+                const refCol = collection(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros');
+                for(let nr of newRecords) {
+                    await addDoc(refCol, nr);
+                }
+                showToast("Semana de vacaciones guardada en la nube");
+                cancelarEdicion();
+            } catch (error) {
+                console.error(error);
+                showModal("Error al guardar en la nube.");
+            }
+            return;
+        }
+
+        const desc = descInput || "-";
+        const fecha = document.getElementById("fecha").value;
 
         // Se ha modificado para permitir el número 0
         if (isNaN(hIn)) { showModal("Indica una cantidad de horas válida."); return; }
@@ -697,6 +803,8 @@
         document.getElementById("btnGuardar").style.background = "var(--warning)";
         document.getElementById("btnCancelarEdicion").style.display = "block";
         
+        window.toggleCamposVacaciones();
+        
         // Abrir formulario si estaba cerrado
         const sec = document.getElementById("seccion-formulario");
         if (sec.style.display === "none") {
@@ -711,32 +819,41 @@
         document.getElementById("horas").value = "";
         document.getElementById("desc").value = "";
         idEdicion = null;
+        document.getElementById("tipo").value = "extra";
+        window.toggleCamposVacaciones();
         document.getElementById("btnGuardar").innerText = "GUARDAR";
         document.getElementById("btnGuardar").style.background = "var(--primary)";
         document.getElementById("btnCancelarEdicion").style.display = "none";
     };
 
-    window.borrarRegistro = (docId) => {
+    window.borrarRegistro = (docIdsStr) => {
         // Cerrar el modal actual si estamos borrando desde el calendario
         document.getElementById("customModal").style.display = "none";
 
         // Pequeño delay para que no se pisen los modales
         setTimeout(() => {
-            showModal(isGuestMode ? "¿Borrar este registro?" : "¿Borrar este registro de la nube?", true, async () => {
+            const docIds = docIdsStr.split(',');
+            const msg = docIds.length > 1 
+                ? (isGuestMode ? "¿Borrar toda la semana de vacaciones?" : "¿Borrar toda la semana de la nube?")
+                : (isGuestMode ? "¿Borrar este registro?" : "¿Borrar este registro de la nube?");
+
+            showModal(msg, true, async () => {
                 if (!currentUser) return;
 
                 if (isGuestMode) {
-                    registrosLocales = registrosLocales.filter(r => r.id !== docId);
+                    registrosLocales = registrosLocales.filter(r => !docIds.includes(r.id));
                     localStorage.setItem('registros_invitado', JSON.stringify(registrosLocales));
-                    showToast("Registro eliminado localmente");
+                    showToast(docIds.length > 1 ? "Semana eliminada localmente" : "Registro eliminado localmente");
                     cargarDatosNube();
                     return;
                 }
 
                 try {
-                    const docRef = doc(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros', docId);
-                    await deleteDoc(docRef);
-                    showToast("Registro eliminado");
+                    for(let id of docIds) {
+                        const docRef = doc(db, 'artifacts', appIdStr, 'users', currentUser.uid, 'registros', id);
+                        await deleteDoc(docRef);
+                    }
+                    showToast(docIds.length > 1 ? "Semana eliminada" : "Registro eliminado");
                 } catch (error) {
                     showModal("Error al borrar.");
                 }
@@ -779,8 +896,18 @@
     };
 
     // --- INTERFAZ DE USUARIO ---
+    window.getWeekAndYear = (fechaStr) => {
+        const f = new Date(fechaStr);
+        const d = new Date(Date.UTC(f.getFullYear(), f.getMonth(), f.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+        const week = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+        return { week, year: d.getUTCFullYear() };
+    };
+
     window.mostrarInfo = () => {
-        showModal(`ℹ️ AYUDA DE LA APLICACIÓN:\n\n• NUEVO REGISTRO: Añade tus horas indicando el tipo, cantidad, fecha y nota. Los cálculos se aplican y suman automáticamente.\n\n• CALENDARIO: Visualiza un resumen mensual. Los días con registros se colorean. Haz clic en un día para leer sus detalles o añadir notas.\n\n• HISTORIAL: Todos tus registros guardados en la nube ordenados por mes. Usa el buscador, borra entradas o exporta a PDF/JSON.\n\n🎨 LEYENDA DE COLORES:\n• Verde: Extra\n• Azul: Compensación\n• Morado: Negativa\n• Naranja: Exceso\n• Rojo: Festivo`, false, null, "Ayuda");
+        showModal(`ℹ️ AYUDA DE LA APLICACIÓN:\n\n• NUEVO REGISTRO: Añade tus horas indicando el tipo, cantidad, fecha y nota. Los cálculos se aplican y suman automáticamente.\n\n• CALENDARIO: Visualiza un resumen mensual. Los días con registros se colorean. Haz clic en un día para leer sus detalles o añadir notas.\n\n• HISTORIAL: Todos tus registros guardados en la nube ordenados por mes. Usa el buscador, borra entradas o exporta a PDF/JSON.\n\n🎨 LEYENDA DE COLORES:\n• Verde: Extra\n• Azul: Compensación\n• Morado: Negativa\n• Naranja: Exceso\n• Rojo: Festivo\n• Amarillo chillón: Vacaciones`, false, null, "Ayuda");
     };
 
     let currentCalDate = new Date();
@@ -904,6 +1031,9 @@
             toggleFormulario();
         }
         
+        document.getElementById("tipo").value = "extra";
+        window.toggleCamposVacaciones();
+        
         // Poner fecha y hacer scroll
         document.getElementById("fecha").value = fechaStr;
         setTimeout(() => {
@@ -955,6 +1085,20 @@
                 let safeDesc = r.desc.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 if (safeDesc === "-") safeDesc = ""; // Limpiar guion por defecto
                 
+                let docId = r.id;
+                let tipoLabel = r.tipoOriginal.toUpperCase();
+                let hideEdit = false;
+
+                if (r.tipoOriginal === 'vacaciones') {
+                    const wy = window.getWeekAndYear(r.fecha);
+                    const sameWeekIds = registrosLocales.filter(x => x.tipoOriginal === 'vacaciones' && window.getWeekAndYear(x.fecha).year === wy.year && window.getWeekAndYear(x.fecha).week === wy.week).map(x => x.id);
+                    if (sameWeekIds.length > 0) {
+                        docId = sameWeekIds.join(',');
+                        tipoLabel = `VACACIONES SEMANA ${wy.week}`;
+                        hideEdit = true;
+                    }
+                }
+
                 // Lógica de caducidad SOLO para extras
                 let badgeVence = '';
                 if (r.tipoOriginal === "extra" && r.horasOriginales > 0) {
@@ -970,20 +1114,20 @@
                     }
                 }
                 
-                const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde' };
+                const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde', vacaciones: 'amarillo-chillon' };
 
                 htmlContent += `<div class="item" style="text-align: left; padding: 16px 0; align-items: flex-start; margin-left: -8px;">
 <div style="flex: 1; padding-right: 12px; text-align: left;">
-<span class="tipo ${colors[r.tipoOriginal]}">${r.tipoOriginal.toUpperCase()}</span>${badgeVence}<br>
-<b style="font-size: 19px;">${r.horasOriginales}h</b> <span style="font-size: 15px; color: var(--text-muted);">(${r.horasCalculadas.toFixed(2)}h)</span><br>
+<span class="tipo ${colors[r.tipoOriginal]}">${tipoLabel}</span>${badgeVence}<br>
+${!hideEdit ? `<b style="font-size: 19px;">${r.horasOriginales}h</b> <span style="font-size: 15px; color: var(--text-muted);">(${r.horasCalculadas.toFixed(2)}h)</span><br>` : ''}
 <div style="margin-top:8px; font-size: 16px; color: var(--text-main);">
 <b>Notas:</b> <span style="color: var(--text-muted);">${safeDesc}</span>
 </div>
 </div>
 <div style="display: flex; flex-direction: column; gap: 8px; min-width: 95px;">
 <button class="editar-btn" style="background: rgba(16, 185, 129, 0.1); color: var(--success); font-weight: bold; padding: 8px 6px;" onclick="abrirNuevoRegistroDesdeCalendario('${fechaStr}')">Añadir Reg.</button>
-<button class="editar-btn" onclick="editarRegistro('${r.id}')">Editar</button>
-<button class="borrar-btn" onclick="borrarRegistro('${r.id}')">Borrar</button>
+${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Editar</button>` : ''}
+<button class="borrar-btn" onclick="borrarRegistro('${docId}')">Borrar</button>
 </div>
 </div>`;
             });
@@ -1036,6 +1180,7 @@
                 if (tipo === 'negativa') colorClass = "cal-morado";
                 else if (tipo === 'exceso') colorClass = "cal-amarillo";
                 else if (tipo === 'compensacion') colorClass = "cal-azul";
+                else if (tipo === 'vacaciones') colorClass = "cal-amarillo-chillon";
                 else colorClass = "cal-verde"; 
                 
                 if (nombreFestivo) {
@@ -1090,10 +1235,47 @@
         }
 
         const meses = {};
+        
+        let processedLocales = [];
+        let vacGroups = {};
 
         registrosLocales.forEach(item => {
+            if (item.tipoOriginal === 'vacaciones') {
+                const wy = window.getWeekAndYear(item.fecha);
+                const key = `${wy.year}-W${wy.week}`;
+                if (!vacGroups[key]) vacGroups[key] = { items: [], ids: [] };
+                vacGroups[key].items.push(item);
+                vacGroups[key].ids.push(item.id);
+            } else {
+                processedLocales.push(item);
+            }
+        });
+
+        Object.keys(vacGroups).forEach(k => {
+            const g = vacGroups[k];
+            g.items.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+            const startItem = g.items[0];
+            const endItem = g.items[g.items.length-1];
+            
+            const sf = new Date(startItem.fecha);
+            const ef = new Date(endItem.fecha);
+            const sfFmt = `${String(sf.getDate()).padStart(2,'0')}/${String(sf.getMonth()+1).padStart(2,'0')}`;
+            const efFmt = `${String(ef.getDate()).padStart(2,'0')}/${String(ef.getMonth()+1).padStart(2,'0')}/${ef.getFullYear()}`;
+            
+            processedLocales.push({
+                ...startItem,
+                id: g.ids.join(','),
+                isGroupedVacation: true,
+                weekLabel: k.split('-W')[1],
+                fFmtStr: `${sfFmt} - ${efFmt}`,
+            });
+        });
+        
+        processedLocales.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+        processedLocales.forEach(item => {
             const f = new Date(item.fecha);
-            const fFmt = `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()}`;
+            const fFmt = item.isGroupedVacation ? item.fFmtStr : `${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()}`;
             const mesNombre = f.toLocaleString('es-ES', { month: 'long' });
             
             if (filter) {
@@ -1103,7 +1285,7 @@
 
             if (item.tipoOriginal === "negativa") tNeg += item.horasCalculadas; 
             else if (item.tipoOriginal === "exceso") tExc += item.horasCalculadas;
-            else tExtra += item.horasCalculadas;
+            else if (item.tipoOriginal !== "vacaciones") tExtra += item.horasCalculadas;
 
             const mKey = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}`;
             if (!meses[mKey]) meses[mKey] = { label: mesNombre, items: [] };
@@ -1146,7 +1328,10 @@
             mesHTML += `<div id="mes-items-${k}" style="display: ${displayStyle}; padding-top: 8px;">`;
 
             m.items.forEach(i => {
-                const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde' };
+                const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde', vacaciones: 'amarillo-chillon' };
+                
+                const desc = i.desc === "-" ? "" : i.desc;
+                const tipoLabel = i.isGroupedVacation ? `VACACIONES SEMANA ${i.weekLabel}` : i.tipoOriginal.toUpperCase();
                 
                 let badgeVence = '';
                 if (i.venceStr) {
@@ -1160,15 +1345,15 @@
                 mesHTML += `
                     <div class="item">
                         <div style="flex: 1;">
-                            <span class="tipo ${colors[i.tipoOriginal]}">${i.tipoOriginal.toUpperCase()}</span>${badgeVence}<br>
-                            <b style="font-size: 17px;">${i.horasOriginales}h</b> <span style="font-size: 14px; color: var(--text-muted);">(${i.horasCalculadas.toFixed(2)}h)</span><br>
+                            <span class="tipo ${colors[i.tipoOriginal]}">${tipoLabel}</span>${badgeVence}<br>
+                            ${!i.isGroupedVacation ? `<b style="font-size: 17px;">${i.horasOriginales}h</b> <span style="font-size: 14px; color: var(--text-muted);">(${i.horasCalculadas.toFixed(2)}h)</span><br>` : ''}
                             <div style="margin-top:6px;">
                                 <span style="font-size: 15px; font-weight: 700; color: var(--text-main);">${i.fFmt}</span> 
-                                <span style="font-size: 15px; color: var(--text-muted);">• ${i.desc}</span>
+                                <span style="font-size: 15px; color: var(--text-muted);">${desc ? `• ${desc}` : ''}</span>
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 6px; align-items: stretch; min-width: 70px; margin-right: 4px;">
-                            <button class="editar-btn" onclick="editarRegistro('${i.id}')">Editar</button>
+                            ${!i.isGroupedVacation ? `<button class="editar-btn" onclick="editarRegistro('${i.id}')">Editar</button>` : ''}
                             <button class="borrar-btn" onclick="borrarRegistro('${i.id}')">Borrar</button>
                         </div>
                     </div>`;
