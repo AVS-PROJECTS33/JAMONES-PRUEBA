@@ -193,7 +193,6 @@
         .dark-mode .cal-amarillo { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: #fbbf24;}
         .dark-mode .cal-azul { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: #60a5fa;}
         .dark-mode .cal-morado { background: rgba(126, 34, 206, 0.2); color: #c084fc; border-color: #c084fc;}
-        .dark-mode .cal-amarillo-chillon { background: rgba(250, 204, 21, 0.2); color: #fde047; border-color: #fde047;}
         .dark-mode .cal-finde { color: #60a5fa; }
         .dark-mode .festivo-con-registro { color: #fb7185 !important; }
 
@@ -1065,10 +1064,12 @@
             registrosLocales.forEach(item => {
                 if (item.horasOriginales < 0 && item.tipoOriginal !== "negativa" && item.tipoOriginal !== "exceso") {
                     horasConsumidas += Math.abs(item.horasCalculadas);
+                } else if (item.tipoOriginal === "compensacion" && item.horasOriginales > 0) {
+                    horasConsumidas += item.horasCalculadas;
                 }
             });
 
-            let extraPositivas = registrosLocales.filter(reg => (reg.tipoOriginal === "extra" || reg.tipoOriginal === "compensacion") && reg.horasOriginales > 0)
+            let extraPositivas = registrosLocales.filter(reg => reg.tipoOriginal === "extra" && reg.horasOriginales > 0)
                 .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
             let idsTachados = new Set();
@@ -1215,11 +1216,13 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
         registrosLocales.forEach(item => {
             if (item.horasOriginales < 0 && item.tipoOriginal !== "negativa" && item.tipoOriginal !== "exceso") {
                 horasConsumidas += Math.abs(item.horasCalculadas);
+            } else if (item.tipoOriginal === "compensacion" && item.horasOriginales > 0) {
+                horasConsumidas += item.horasCalculadas;
             }
         });
 
         // 2. Obtenemos las horas extra positivas y las ordenamos desde la más antigua a la más nueva
-        let extraPositivas = registrosLocales.filter(r => (r.tipoOriginal === "extra" || r.tipoOriginal === "compensacion") && r.horasOriginales > 0)
+        let extraPositivas = registrosLocales.filter(r => r.tipoOriginal === "extra" && r.horasOriginales > 0)
             .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
         // 3. Cruzamos las horas consumidas con las extras más antiguas
@@ -1285,6 +1288,7 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
 
             if (item.tipoOriginal === "negativa") tNeg += item.horasCalculadas; 
             else if (item.tipoOriginal === "exceso") tExc += item.horasCalculadas;
+            else if (item.tipoOriginal === "compensacion" && item.horasOriginales > 0) tExtra -= item.horasCalculadas;
             else if (item.tipoOriginal !== "vacaciones") tExtra += item.horasCalculadas;
 
             const mKey = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}`;
@@ -1408,7 +1412,8 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
         registrosLocales.forEach(i => {
             if (i.tipoOriginal === "negativa") tNeg += i.horasCalculadas;
             else if (i.tipoOriginal === "exceso") tExc += i.horasCalculadas;
-            else tExtra += i.horasCalculadas;
+            else if (i.tipoOriginal === "compensacion" && i.horasOriginales > 0) tExtra -= i.horasCalculadas;
+            else if (i.tipoOriginal !== "vacaciones") tExtra += i.horasCalculadas;
         });
 
         doc.setFontSize(11);
@@ -1426,9 +1431,44 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
 
         let finalY = doc.lastAutoTable.finalY || 35;
         
-        const meses = {};
-        const registrosSorted = [...registrosLocales].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        let processedLocales = [];
+        let vacGroups = {};
 
+        registrosLocales.forEach(item => {
+            if (item.tipoOriginal === 'vacaciones') {
+                const wy = window.getWeekAndYear(item.fecha);
+                const key = `${wy.year}-W${wy.week}`;
+                if (!vacGroups[key]) vacGroups[key] = { items: [], ids: [] };
+                vacGroups[key].items.push(item);
+                vacGroups[key].ids.push(item.id);
+            } else {
+                processedLocales.push(item);
+            }
+        });
+
+        Object.keys(vacGroups).forEach(k => {
+            const g = vacGroups[k];
+            g.items.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+            const startItem = g.items[0];
+            const endItem = g.items[g.items.length-1];
+            
+            const sf = new Date(startItem.fecha);
+            const ef = new Date(endItem.fecha);
+            const sfFmt = `${String(sf.getDate()).padStart(2,'0')}/${String(sf.getMonth()+1).padStart(2,'0')}`;
+            const efFmt = `${String(ef.getDate()).padStart(2,'0')}/${String(ef.getMonth()+1).padStart(2,'0')}/${ef.getFullYear()}`;
+            
+            processedLocales.push({
+                ...startItem,
+                id: g.ids.join(','),
+                isGroupedVacation: true,
+                weekLabel: k.split('-W')[1],
+                fFmtStr: `${sfFmt} - ${efFmt}`,
+            });
+        });
+        
+        const registrosSorted = processedLocales.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+        const meses = {};
         registrosSorted.forEach(item => {
             const f = new Date(item.fecha);
             const mKey = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}`;
@@ -1455,13 +1495,24 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
                 doc.setFont(undefined, 'bold');
                 doc.text(`${m.label.toUpperCase()} ${m.year}`, 14, finalY);
 
-                const tableData = m.items.map(i => [
-                    i.fecha.split('-').reverse().join('/'), 
-                    i.tipoOriginal.toUpperCase(), 
-                    i.horasOriginales.toFixed(2), 
-                    i.horasCalculadas.toFixed(2), 
-                    i.desc
-                ]);
+                const tableData = m.items.map(i => {
+                    if (i.isGroupedVacation) {
+                        return [
+                            i.fFmtStr, 
+                            `VACACIONES SEMANA ${i.weekLabel}`, 
+                            "-", 
+                            "-", 
+                            i.desc
+                        ];
+                    }
+                    return [
+                        i.fecha.split('-').reverse().join('/'), 
+                        i.tipoOriginal.toUpperCase(), 
+                        i.horasOriginales.toFixed(2), 
+                        i.horasCalculadas.toFixed(2), 
+                        i.desc
+                    ];
+                });
 
                 doc.autoTable({ 
                     startY: finalY + 4, 
