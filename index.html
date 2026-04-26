@@ -736,8 +736,8 @@
             else if (tipoInput === "nocturna") factor = 2.0;
         }
 
-        const hOriginal = tipoInput === "negativa_empresa" ? Math.abs(hInRaw) : hInRaw;
-        const hCalculada = tipoInput === "negativa_empresa" ? Math.abs(hInRaw * factor) : hInRaw * factor;
+        const hOriginal = hInRaw;
+        const hCalculada = hInRaw * factor;
 
         const nuevoRegistro = {
             horasCalculadas: hCalculada,
@@ -824,7 +824,6 @@
         document.getElementById("horas").value = "";
         document.getElementById("desc").value = "";
         idEdicion = null;
-        document.getElementById("tipo").value = "extra";
         window.toggleCamposVacaciones();
         document.getElementById("btnGuardar").innerText = "GUARDAR";
         document.getElementById("btnGuardar").style.background = "var(--primary)";
@@ -1036,7 +1035,6 @@
             toggleFormulario();
         }
         
-        document.getElementById("tipo").value = "extra";
         window.toggleCamposVacaciones();
         
         // Poner fecha y hacer scroll
@@ -1292,8 +1290,7 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
                 if (!searchString.includes(filter)) return;
             }
 
-            if (item.tipoOriginal === "negativa") tNeg += item.horasCalculadas; 
-            else if (item.tipoOriginal === "negativa_empresa") tNeg += Math.abs(item.horasCalculadas);
+            if (item.tipoOriginal === "negativa" || item.tipoOriginal === "negativa_empresa") tNeg += item.horasCalculadas; 
             else if (item.tipoOriginal === "exceso") tExc += item.horasCalculadas;
             else if (item.tipoOriginal === "compensacion" && item.horasOriginales > 0) tExtra -= item.horasCalculadas;
             else if (item.tipoOriginal !== "vacaciones") tExtra += item.horasCalculadas;
@@ -1422,8 +1419,7 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
         
         let tExtra = 0, tNeg = 0, tExc = 0;
         registrosLocales.forEach(i => {
-            if (i.tipoOriginal === "negativa") tNeg += i.horasCalculadas;
-            else if (i.tipoOriginal === "negativa_empresa") tNeg += Math.abs(i.horasCalculadas);
+            if (i.tipoOriginal === "negativa" || i.tipoOriginal === "negativa_empresa") tNeg += i.horasCalculadas;
             else if (i.tipoOriginal === "exceso") tExc += i.horasCalculadas;
             else if (i.tipoOriginal === "compensacion" && i.horasOriginales > 0) tExtra -= i.horasCalculadas;
             else if (i.tipoOriginal !== "vacaciones") tExtra += i.horasCalculadas;
