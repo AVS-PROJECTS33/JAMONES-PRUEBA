@@ -193,6 +193,7 @@
         .dark-mode .cal-amarillo { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: #fbbf24;}
         .dark-mode .cal-azul { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: #60a5fa;}
         .dark-mode .cal-morado { background: rgba(126, 34, 206, 0.2); color: #c084fc; border-color: #c084fc;}
+        .dark-mode .cal-amarillo-chillon { background: rgba(250, 204, 21, 0.2); color: #fde047; border-color: #fde047;}
         .dark-mode .cal-finde { color: #60a5fa; }
         .dark-mode .festivo-con-registro { color: #fb7185 !important; }
 
@@ -320,6 +321,7 @@
                     <option value="extra">➕ Extra (x1.75)</option>
                     <option value="compensacion">⚖️ Compensación (x1.0)</option>
                     <option value="negativa">➖ Negativa (x1.0)</option>
+                    <option value="negativa_empresa">🏢 Negativas of.empresa (÷1.5)</option>
                     <option value="exceso">⚠️ Exceso (x1.0)</option>
                     <option value="festiva">🎉 Festiva (x2.25)</option>
                     <option value="nocturna">🌙 Nocturna (x2.0)</option>
@@ -663,7 +665,7 @@
     }
 
     window.guardar = async () => {
-        const hIn = parseFloat(document.getElementById("horas").value);
+        const hInRaw = parseFloat(document.getElementById("horas").value);
         const descInput = document.getElementById("desc").value;
         const tipoInput = document.getElementById("tipo").value;
 
@@ -721,21 +723,25 @@
         const desc = descInput || "-";
         const fecha = document.getElementById("fecha").value;
 
-        // Se ha modificado para permitir el número 0
-        if (isNaN(hIn)) { showModal("Indica una cantidad de horas válida."); return; }
+        if (isNaN(hInRaw)) { showModal("Indica una cantidad de horas válida."); return; }
         if (!fecha) { showModal("La fecha es necesaria."); return; }
         if (!currentUser) { showModal("Debes iniciar sesión."); return; }
 
         let factor = 1.0;
-        if (hIn > 0) {
+        if (tipoInput === "negativa_empresa") {
+            factor = 1 / 1.5;
+        } else if (hInRaw > 0) {
             if (tipoInput === "extra") factor = 1.75;
             else if (tipoInput === "festiva") factor = 2.25;
             else if (tipoInput === "nocturna") factor = 2.0;
         }
 
+        const hOriginal = tipoInput === "negativa_empresa" ? Math.abs(hInRaw) : hInRaw;
+        const hCalculada = tipoInput === "negativa_empresa" ? Math.abs(hInRaw * factor) : hInRaw * factor;
+
         const nuevoRegistro = {
-            horasCalculadas: hIn * factor,
-            horasOriginales: hIn,
+            horasCalculadas: hCalculada,
+            horasOriginales: hOriginal,
             desc: desc,
             fecha: fecha,
             tipoOriginal: tipoInput,
@@ -1062,7 +1068,7 @@
             // Calcular horas consumidas para saber si está tachado (caducidad)
             let horasConsumidas = 0;
             registrosLocales.forEach(item => {
-                if (item.horasOriginales < 0 && item.tipoOriginal !== "negativa" && item.tipoOriginal !== "exceso") {
+                if (item.horasOriginales < 0 && item.tipoOriginal !== "negativa" && item.tipoOriginal !== "exceso" && item.tipoOriginal !== "negativa_empresa") {
                     horasConsumidas += Math.abs(item.horasCalculadas);
                 } else if (item.tipoOriginal === "compensacion" && item.horasOriginales > 0) {
                     horasConsumidas += item.horasCalculadas;
@@ -1087,7 +1093,7 @@
                 if (safeDesc === "-") safeDesc = ""; // Limpiar guion por defecto
                 
                 let docId = r.id;
-                let tipoLabel = r.tipoOriginal.toUpperCase();
+                let tipoLabel = r.tipoOriginal === 'negativa_empresa' ? 'NEGATIVAS OF.EMPRESA' : r.tipoOriginal.toUpperCase();
                 let hideEdit = false;
 
                 if (r.tipoOriginal === 'vacaciones') {
@@ -1115,7 +1121,7 @@
                     }
                 }
                 
-                const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde', vacaciones: 'amarillo-chillon' };
+                const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde', vacaciones: 'amarillo-chillon', negativa_empresa: 'morado' };
 
                 htmlContent += `<div class="item" style="text-align: left; padding: 16px 0; align-items: flex-start; margin-left: -8px;">
 <div style="flex: 1; padding-right: 12px; text-align: left;">
@@ -1178,7 +1184,7 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
             
             if (registrosDia.length > 0) {
                 const tipo = registrosDia[0].tipoOriginal;
-                if (tipo === 'negativa') colorClass = "cal-morado";
+                if (tipo === 'negativa' || tipo === 'negativa_empresa') colorClass = "cal-morado";
                 else if (tipo === 'exceso') colorClass = "cal-amarillo";
                 else if (tipo === 'compensacion') colorClass = "cal-azul";
                 else if (tipo === 'vacaciones') colorClass = "cal-amarillo-chillon";
@@ -1214,7 +1220,7 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
         // 1. Calculamos las horas consumidas (cualquier registro con valor negativo, excepto negativa y exceso)
         let horasConsumidas = 0;
         registrosLocales.forEach(item => {
-            if (item.horasOriginales < 0 && item.tipoOriginal !== "negativa" && item.tipoOriginal !== "exceso") {
+            if (item.horasOriginales < 0 && item.tipoOriginal !== "negativa" && item.tipoOriginal !== "exceso" && item.tipoOriginal !== "negativa_empresa") {
                 horasConsumidas += Math.abs(item.horasCalculadas);
             } else if (item.tipoOriginal === "compensacion" && item.horasOriginales > 0) {
                 horasConsumidas += item.horasCalculadas;
@@ -1287,6 +1293,7 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
             }
 
             if (item.tipoOriginal === "negativa") tNeg += item.horasCalculadas; 
+            else if (item.tipoOriginal === "negativa_empresa") tNeg += Math.abs(item.horasCalculadas);
             else if (item.tipoOriginal === "exceso") tExc += item.horasCalculadas;
             else if (item.tipoOriginal === "compensacion" && item.horasOriginales > 0) tExtra -= item.horasCalculadas;
             else if (item.tipoOriginal !== "vacaciones") tExtra += item.horasCalculadas;
@@ -1332,10 +1339,10 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
             mesHTML += `<div id="mes-items-${k}" style="display: ${displayStyle}; padding-top: 8px;">`;
 
             m.items.forEach(i => {
-                const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde', vacaciones: 'amarillo-chillon' };
+                const colors = { extra: 'verde', compensacion: 'azul', festiva: 'verde', nocturna: 'verde', negativa: 'morado', exceso: 'amarillo', inet: 'verde', vacaciones: 'amarillo-chillon', negativa_empresa: 'morado' };
                 
                 const desc = i.desc === "-" ? "" : i.desc;
-                const tipoLabel = i.isGroupedVacation ? `VACACIONES SEMANA ${i.weekLabel}` : i.tipoOriginal.toUpperCase();
+                const tipoLabel = i.isGroupedVacation ? `VACACIONES SEMANA ${i.weekLabel}` : (i.tipoOriginal === 'negativa_empresa' ? 'NEGATIVAS OF.EMPRESA' : i.tipoOriginal.toUpperCase());
                 
                 let badgeVence = '';
                 if (i.venceStr) {
@@ -1416,6 +1423,7 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
         let tExtra = 0, tNeg = 0, tExc = 0;
         registrosLocales.forEach(i => {
             if (i.tipoOriginal === "negativa") tNeg += i.horasCalculadas;
+            else if (i.tipoOriginal === "negativa_empresa") tNeg += Math.abs(i.horasCalculadas);
             else if (i.tipoOriginal === "exceso") tExc += i.horasCalculadas;
             else if (i.tipoOriginal === "compensacion" && i.horasOriginales > 0) tExtra -= i.horasCalculadas;
             else if (i.tipoOriginal !== "vacaciones") tExtra += i.horasCalculadas;
@@ -1512,7 +1520,7 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
                     }
                     return [
                         i.fecha.split('-').reverse().join('/'), 
-                        i.tipoOriginal.toUpperCase(), 
+                        i.tipoOriginal === 'negativa_empresa' ? 'NEGATIVAS OF.EMPRESA' : i.tipoOriginal.toUpperCase(), 
                         i.horasOriginales.toFixed(2), 
                         i.horasCalculadas.toFixed(2), 
                         i.desc
