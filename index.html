@@ -383,6 +383,9 @@
         </div>
         
         <div id="seccion-historial" style="display: none; margin-top: 16px;">
+            <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                <button class="btn-icon" style="background: var(--success); color: white; border: none; padding: 8px 14px; font-size: 13px;" onclick="exportarPDF()">📄 Extraer PDF</button>
+            </div>
             <input type="text" id="buscador" placeholder="Buscar por nota o fecha..." oninput="filtrarLocal()">
             <div id="lista-cargando" style="text-align:center; padding: 20px; color: var(--text-muted);">Sincronizando datos...</div>
             <div id="lista"></div>
@@ -399,12 +402,11 @@
             <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 16px;">
                 <button class="btn-icon" style="background: var(--info); color: white; border: none; padding: 8px 14px; font-size: 13px;" onclick="document.getElementById('importFile').click()">📥 Importar</button>
                 <button class="btn-icon" style="background: var(--warning); color: white; border: none; padding: 8px 14px; font-size: 13px;" onclick="exportarJSON()">📤 Exportar</button>
-                <button class="btn-icon" style="background: var(--success); color: white; border: none; padding: 8px 14px; font-size: 13px;" onclick="exportarPDF()">📄 PDF</button>
+                <button class="btn-icon" style="background: var(--primary); color: white; border: none; padding: 8px 14px; font-size: 13px;" onclick="abrirPersonalizacion()">🎨 Personalizar</button>
             </div>
             
             <div style="display: flex; gap: 12px; justify-content: center;">
                 <button class="btn-danger-outline" style="margin: 0; flex: 1;" onclick="reiniciarAno()">Reiniciar Año</button>
-                <button class="btn-primary" style="margin: 0; flex: 1; background: var(--primary); padding: 12px; font-size: 13px;" onclick="abrirPersonalizacion()">🎨 Personalizar</button>
             </div>
         </div>
     </div>
@@ -437,13 +439,23 @@
         <h3 style="margin-top:0; text-align: center; font-size: 1.1rem;">🎨 Personalizar App</h3>
         
         <div class="form-group">
-            <label style="margin-bottom: 4px;">Color de Fondo General</label>
+            <label style="margin-bottom: 4px;">Color de Fondo (Claro)</label>
             <input type="color" id="colorFondo" style="height: 40px; padding: 2px; cursor: pointer;">
+        </div>
+
+        <div class="form-group">
+            <label style="margin-bottom: 4px;">Color de Fondo (Oscuro)</label>
+            <input type="color" id="colorFondoOscuro" style="height: 40px; padding: 2px; cursor: pointer;">
         </div>
         
         <div class="form-group">
             <label style="margin-bottom: 4px;">Color de las Tarjetas</label>
             <input type="color" id="colorTarjeta" style="height: 40px; padding: 2px; cursor: pointer;">
+        </div>
+
+        <div class="form-group">
+            <label style="margin-bottom: 4px;">Color de Texto (Letras y Números)</label>
+            <input type="color" id="colorTexto" style="height: 40px; padding: 2px; cursor: pointer;">
         </div>
         
         <div class="form-group">
@@ -496,16 +508,21 @@
     // --- LÓGICA DE PERSONALIZACIÓN ---
     window.abrirPersonalizacion = () => {
         document.getElementById('modal-personalizar').style.display = 'flex';
+        const isDark = document.body.classList.contains('dark-mode');
         const config = JSON.parse(localStorage.getItem('app_theme_config')) || {
-            bgColor: document.body.classList.contains('dark-mode') ? '#121212' : '#f8fafc',
-            cardColor: document.body.classList.contains('dark-mode') ? '#1e1e1e' : '#ffffff',
+            bgColor: '#f8fafc',
+            bgColorDark: '#121212',
+            cardColor: isDark ? '#1e1e1e' : '#ffffff',
+            textColor: isDark ? '#e0e0e0' : '#1e293b',
             opacity: 1,
             brightness: 1
         };
-        document.getElementById('colorFondo').value = config.bgColor;
-        document.getElementById('colorTarjeta').value = config.cardColor;
-        document.getElementById('opacidadTarjeta').value = config.opacity;
-        document.getElementById('brilloApp').value = config.brightness;
+        document.getElementById('colorFondo').value = config.bgColor || '#f8fafc';
+        document.getElementById('colorFondoOscuro').value = config.bgColorDark || '#121212';
+        document.getElementById('colorTarjeta').value = config.cardColor || (isDark ? '#1e1e1e' : '#ffffff');
+        document.getElementById('colorTexto').value = config.textColor || (isDark ? '#e0e0e0' : '#1e293b');
+        document.getElementById('opacidadTarjeta').value = config.opacity !== undefined ? config.opacity : 1;
+        document.getElementById('brilloApp').value = config.brightness !== undefined ? config.brightness : 1;
     };
 
     window.cerrarPersonalizacion = () => {
@@ -523,7 +540,9 @@
     window.guardarPersonalizacion = () => {
         const config = {
             bgColor: document.getElementById('colorFondo').value,
+            bgColorDark: document.getElementById('colorFondoOscuro').value,
             cardColor: document.getElementById('colorTarjeta').value,
+            textColor: document.getElementById('colorTexto').value,
             opacity: document.getElementById('opacidadTarjeta').value,
             brightness: document.getElementById('brilloApp').value
         };
@@ -536,20 +555,31 @@
         localStorage.removeItem('app_theme_config');
         document.documentElement.style.removeProperty('--bg-body');
         document.documentElement.style.removeProperty('--bg-card');
+        document.documentElement.style.removeProperty('--text-main');
         document.body.style.filter = 'none';
         window.cerrarPersonalizacion();
     };
 
     window.aplicarTema = (config) => {
         if (!config) return;
-        document.documentElement.style.setProperty('--bg-body', config.bgColor);
-        document.documentElement.style.setProperty('--bg-card', window.hexToRgba(config.cardColor, config.opacity));
-        document.body.style.filter = `brightness(${config.brightness})`;
+        const isDark = document.body.classList.contains('dark-mode');
+        
+        if (isDark) {
+            if (config.bgColorDark) document.documentElement.style.setProperty('--bg-body', config.bgColorDark);
+        } else {
+            if (config.bgColor) document.documentElement.style.setProperty('--bg-body', config.bgColor);
+        }
+
+        if (config.cardColor) {
+            document.documentElement.style.setProperty('--bg-card', window.hexToRgba(config.cardColor, config.opacity !== undefined ? config.opacity : 1));
+        }
+        
+        if (config.textColor) {
+            document.documentElement.style.setProperty('--text-main', config.textColor);
+        }
+        
+        document.body.style.filter = `brightness(${config.brightness !== undefined ? config.brightness : 1})`;
     };
-
-    const savedTheme = JSON.parse(localStorage.getItem('app_theme_config'));
-    if (savedTheme) window.aplicarTema(savedTheme);
-
 
     // --- AUTENTICACIÓN ---
     const initAuth = async () => {
@@ -1503,6 +1533,16 @@ ${!hideEdit ? `<button class="editar-btn" onclick="editarRegistro('${r.id}')">Ed
     window.toggleModo = () => {
         document.body.classList.toggle("dark-mode");
         localStorage.setItem("modo", document.body.classList.contains("dark-mode") ? "dark" : "light");
+        
+        // Refrescar colores personalizados tras cambiar de modo
+        const config = JSON.parse(localStorage.getItem('app_theme_config'));
+        if (config) {
+            window.aplicarTema(config);
+        } else {
+            document.documentElement.style.removeProperty('--bg-body');
+            document.documentElement.style.removeProperty('--bg-card');
+            document.documentElement.style.removeProperty('--text-main');
+        }
     };
     if (localStorage.getItem("modo") === "dark") document.body.classList.add("dark-mode");
 
